@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <dimen name="ptr_progress_bar_stroke_width">4dp</dimen>
+
+</resources>

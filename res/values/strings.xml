@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <string name="app_name">Potato</string>
+    <string name="activity_crossword">Crossword</string>
+    <string name="new_crossword">New crossword</string>
+    <string name="about_action">About</string>
+    <string name="github">GitHub</string>
+    <string name="github_label">Potato on GitHub</string>
+    <string name="new_label">New</string>
+    <string name="clear_label">Clear</string>
+
+</resources>
