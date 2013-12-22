@@ -1,7 +1,13 @@
 package com.nikoblag.android.potato;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.net.Uri;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.ViewGroup;
 import android.widget.*;
 import com.actionbarsherlock.app.SherlockActivity;
 
@@ -17,16 +23,10 @@ import uk.co.senab.actionbarpulltorefresh.library.Options;
 import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.AbsListViewDelegate;
 
+import java.util.ArrayList;
+
 public class CrosswordActivity extends SherlockActivity
         implements OnRefreshListener {
-
-    private static String[] ITEMS = {"", "", "", "", "", "", "", "", "", "", "", "",
-            "", "", "", "", "", "", "", "", "", "", "", "",
-            "", "", "", "", "", "", "", "", "", "", "", "",
-            "", "", "", "", "", "", "", "", "", "", "", "",
-            "", "", "", "", "", "", "", "", "", "", "", "",
-            "", "", "", "", "", "", "", "", "", "", "", "",
-            "", "", "", "", "", "", "", "", "", "", "", ""};
 
     private PullToRefreshLayout mPullToRefreshLayout;
 
@@ -56,9 +56,7 @@ public class CrosswordActivity extends SherlockActivity
         setContentView(R.layout.activity_crossword);
 
         GridView gridView = (GridView) findViewById(R.id.ptr_gridview);
-        ListAdapter adapter = new ArrayAdapter<String>(this, R.layout.simple_edit_box,
-                ITEMS);
-        gridView.setAdapter(adapter);
+        gridView.setAdapter(new WordAdapter(this));
 
         mPullToRefreshLayout = (PullToRefreshLayout) findViewById(R.id.ptr_layout);
         ActionBarPullToRefresh.from(this)
@@ -92,5 +90,60 @@ public class CrosswordActivity extends SherlockActivity
                 mPullToRefreshLayout.setRefreshComplete();
             }
         }.execute();
+    }
+
+
+    private static class WordAdapter extends BaseAdapter {
+
+        private static String[] ITEMS = {
+                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+                "0", "" , "", "" , "", "5" , "" , "" , "" , "" ,
+                "0", "" , "", "" , "", "5" , "" , "" , "" , "" ,
+                "0", "" , "", "" , "", "5" , "6" , "7" , "8" , "9" ,
+                "0", "" , "", "" , "", "" , "" , "7" , "" , "" ,
+                "0", "" , "2", "" , "", "" , "" , "" , "" , "" ,
+                "0", "" , "2", "" , "", "" , "" , "" , "" , "" ,
+                "0", "" , "2", "" , "", "" , "" , "" , "" , "" };
+
+        private final LayoutInflater mInflater;
+
+        public WordAdapter(Context context) {
+            mInflater = LayoutInflater.from(context);
+        }
+
+        @Override
+        public int getCount() {
+            return ITEMS.length;
+        }
+
+        @Override
+        public String getItem(int position) {
+            return ITEMS[position];
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            EditText et = (EditText) convertView;
+            if (et == null) {
+                et = (EditText) mInflater.inflate(R.layout.simple_edit_box, parent, false);
+
+                String l = getItem(position);
+
+                if (l == null || l.isEmpty()) {
+                    et.setVisibility(View.INVISIBLE);
+                } else {
+                    et.setHint(l);
+                    et.setHintTextColor(et.getSolidColor());
+                }
+            }
+            return et;
+        }
     }
 }
