@@ -3,9 +3,11 @@ package com.nikoblag.android.potato;
 import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.*;
 import com.actionbarsherlock.app.SherlockActivity;
 
@@ -26,6 +28,20 @@ public class CrosswordActivity extends SherlockActivity
         implements OnRefreshListener {
 
     private PullToRefreshLayout mPullToRefreshLayout;
+
+    private static String[] ITEMS = {
+            "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+            "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+            "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+            "0", "" , "", "" , "", "5" , "" , "" , "" , "" ,
+            "0", "" , "", "" , "", "5" , "" , "" , "" , "" ,
+            "0", "" , "", "" , "", "5" , "6" , "7" , "8" , "9" ,
+            "0", "" , "", "" , "", "" , "" , "7" , "" , "" ,
+            "0", "" , "2", "" , "", "" , "" , "" , "" , "" ,
+            "0", "" , "2", "" , "", "" , "" , "" , "" , "" ,
+            "0", "" , "2", "" , "", "" , "" , "" , "" , "" };
+
+    private boolean resumeQueued = false;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -57,15 +73,14 @@ public class CrosswordActivity extends SherlockActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_crossword);
 
-        Bundle extras = getIntent().getExtras();
-        int request =  extras.getInt("request");
-
-        if (request == CrosswordActivityRequest.RESUME) {
-           // load last crossword
-        }
-
         GridView gridView = (GridView) findViewById(R.id.ptr_gridview);
-        gridView.setAdapter(new WordAdapter(this));
+        gridView.setAdapter(new WordAdapter(this, ITEMS));
+        gridView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                executeResume();
+            }
+        });
 
         mPullToRefreshLayout = (PullToRefreshLayout) findViewById(R.id.ptr_layout);
         ActionBarPullToRefresh.from(this)
@@ -124,34 +139,93 @@ public class CrosswordActivity extends SherlockActivity
         }.execute();
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit().clear();
+        editor.putInt("cwd_id", 0); // TODO: put the currently loaded crossword file id
+
+        GridView gridView = (GridView) findViewById(R.id.ptr_gridview);
+        final int len = gridView.getChildCount();
+
+        for (int i = 0; i < len; i++) {
+            View v = gridView.getChildAt(i);
+            Class c = v.getClass();
+
+            if (c == EditText.class) {
+                EditText et = (EditText) v;
+                String val = et.getText().toString();
+                // save the non-empty values only, no need to flood the prefs
+                if (!val.isEmpty()) {
+                    editor.putString("box_" + i, val);
+                }
+            }
+        }
+
+        editor.commit();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        Bundle extras = getIntent().getExtras();
+        int request =  extras.getInt("request");
+
+        if (request == CrosswordActivityRequest.RESUME) {
+            resumeQueued = true;
+        } else if (request == CrosswordActivityRequest.NEW) {
+            SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+            prefs.edit().clear().commit();
+        }
+    }
+
+    private void executeResume() {
+        if (!resumeQueued)
+            return;
+
+        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        int cwd_id = prefs.getInt("cwd_id", -1); // TODO: load the crossword file
+
+        GridView gridView = (GridView) findViewById(R.id.ptr_gridview);
+        final int len = gridView.getChildCount();
+
+        for (int i = 0; i < len; i++) {
+            View v = gridView.getChildAt(i);
+            Class c = v.getClass();
+
+            if (c == EditText.class) {
+                EditText et = (EditText) v;
+                String val = prefs.getString("box_" + i, "");
+                if (!val.isEmpty()) {
+                    et.setText(val);
+                }
+            }
+        }
+
+        resumeQueued = false;
+    }
+
     private static class WordAdapter extends BaseAdapter {
 
-        private static String[] ITEMS = {
-                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-                "0", "" , "", "" , "", "5" , "" , "" , "" , "" ,
-                "0", "" , "", "" , "", "5" , "" , "" , "" , "" ,
-                "0", "" , "", "" , "", "5" , "6" , "7" , "8" , "9" ,
-                "0", "" , "", "" , "", "" , "" , "7" , "" , "" ,
-                "0", "" , "2", "" , "", "" , "" , "" , "" , "" ,
-                "0", "" , "2", "" , "", "" , "" , "" , "" , "" ,
-                "0", "" , "2", "" , "", "" , "" , "" , "" , "" };
-
         private final LayoutInflater mInflater;
+        private String[] mItems;
 
-        public WordAdapter(Context context) {
+        public WordAdapter(Context context, String[] items) {
             mInflater = LayoutInflater.from(context);
+            mItems = items;
         }
 
         @Override
         public int getCount() {
-            return ITEMS.length;
+            return mItems.length;
         }
 
         @Override
         public String getItem(int position) {
-            return ITEMS[position];
+            return mItems[position];
         }
 
         @Override
@@ -164,6 +238,7 @@ public class CrosswordActivity extends SherlockActivity
             EditText et = (EditText) convertView;
             if (et == null) {
                 et = (EditText) mInflater.inflate(R.layout.simple_edit_box, parent, false);
+                et.setId(Util.generateViewId());
 
                 String l = getItem(position);
 
