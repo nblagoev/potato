@@ -57,6 +57,13 @@ public class CrosswordActivity extends SherlockActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_crossword);
 
+        Bundle extras = getIntent().getExtras();
+        int request =  extras.getInt("request");
+
+        if (request == CrosswordActivityRequest.RESUME) {
+           // load last crossword
+        }
+
         GridView gridView = (GridView) findViewById(R.id.ptr_gridview);
         gridView.setAdapter(new WordAdapter(this));
 
@@ -116,7 +123,6 @@ public class CrosswordActivity extends SherlockActivity
             }
         }.execute();
     }
-
 
     private static class WordAdapter extends BaseAdapter {
 

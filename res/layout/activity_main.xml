@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_width="230dp"
+        android:layout_height="230dp"
+        android:id="@+id/imageView"
+        android:layout_gravity="center_horizontal"
+        android:src="@drawable/hbs_logo"
+        android:contentDescription="HotPotatoes Logo"/>
+
+    <Space
+        android:layout_width="fill_parent"
+        android:layout_height="10dp"
+        android:layout_marginBottom="15dp"/>
+
+    <Button
+        android:layout_width="210dp"
+        android:layout_height="wrap_content"
+        android:text="New crossword"
+        android:id="@+id/new_crossword_button"
+        android:layout_gravity="center_horizontal"
+        android:onClick="newCrossword"/>
+
+    <Button
+        android:layout_width="210dp"
+        android:layout_height="wrap_content"
+        android:text="Resume"
+        android:id="@+id/resume_button"
+        android:layout_gravity="center_horizontal"
+        android:onClick="resumeCrossword"/>
+
+    <Button
+        android:layout_width="210dp"
+        android:layout_height="wrap_content"
+        android:text="Exit"
+        android:id="@+id/exit_button"
+        android:layout_gravity="center_horizontal"
+        android:onClick="exit"/>
+</LinearLayout>
