@@ -2,10 +2,8 @@ package com.nikoblag.android.potato;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
+import android.content.res.TypedArray;
 import android.net.Uri;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.*;
@@ -24,6 +22,7 @@ import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.AbsListViewDelegate;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class CrosswordActivity extends SherlockActivity
         implements OnRefreshListener {
@@ -70,9 +69,29 @@ public class CrosswordActivity extends SherlockActivity
     }
 
     @Override
-    public void onRefreshStarted(View view) {
-        new AsyncTask<Void, Void, Void>() {
+    public void onRefreshStarted(final View view) {
+        // Note: Android views can't be manipulated outside the thread
+        // that was used to create them
+        GridView gridView = (GridView) view;
+        final int len = gridView.getChildCount();
 
+        for (int i = 0; i < len; i++) {
+            View v = gridView.getChildAt(i);
+            Class c = v.getClass();
+
+            if (c == EditText.class) {
+                EditText et = (EditText) v;
+                if (!et.getText().toString().equals(et.getHint())) {
+                    et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid);
+                } else {
+                    et.setBackgroundResource(R.drawable.edit_text_holo_light);
+                }
+            }
+        }
+
+        // Leaving this refresh simulation, because it fixes the UI glitch
+        // caused by the fast execution of the above code
+        new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
                 try {
