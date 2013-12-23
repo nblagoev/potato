@@ -1,8 +1,8 @@
 package com.nikoblag.android.potato;
 
+import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.TypedArray;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -21,8 +21,6 @@ import uk.co.senab.actionbarpulltorefresh.library.Options;
 import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.AbsListViewDelegate;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class CrosswordActivity extends SherlockActivity
         implements OnRefreshListener {
@@ -39,6 +37,11 @@ public class CrosswordActivity extends SherlockActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+           case android.R.id.home:
+                Intent i = new Intent(this, MainActivity.class);
+                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(i);
+                return true;
            case R.id.github:
                 Uri uriUrl = Uri.parse("http://github.com/nikoblag/potato");
                 Intent launchBrowser = new Intent(Intent.ACTION_VIEW, uriUrl);
@@ -66,6 +69,9 @@ public class CrosswordActivity extends SherlockActivity
                 .listener(this)
                 .useViewDelegate(GridView.class, new AbsListViewDelegate())
                 .setup(mPullToRefreshLayout);
+
+        ActionBar actionBar = getActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
     }
 
     @Override
