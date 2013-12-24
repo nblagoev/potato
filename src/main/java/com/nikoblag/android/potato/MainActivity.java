@@ -16,13 +16,13 @@ public class MainActivity extends SherlockActivity {
 
     public void newCrossword(View view) {
         Intent intent = new Intent(getApplicationContext(), CrosswordActivity.class);
-        intent.putExtra("request", CrosswordActivityRequest.NEW);
+        intent.putExtra(Const.ACTIVITY_REQUEST, Const.ACTIVITY_REQUEST_NEW);
         startActivity(intent);
     }
 
     public void resumeCrossword(View view) {
         Intent intent = new Intent(getApplicationContext(), CrosswordActivity.class);
-        intent.putExtra("request", CrosswordActivityRequest.RESUME);
+        intent.putExtra(Const.ACTIVITY_REQUEST, Const.ACTIVITY_REQUEST_RESUME);
         startActivity(intent);
     }
 

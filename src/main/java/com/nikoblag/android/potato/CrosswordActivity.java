@@ -1,8 +1,10 @@
 package com.nikoblag.android.potato;
 
 import android.app.ActionBar;
+import android.app.LoaderManager.LoaderCallbacks;
 import android.content.Context;
 import android.content.Intent;
+import android.content.Loader;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Parcelable;
@@ -18,6 +20,7 @@ import android.view.View;
 
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.Window;
 import com.cocosw.undobar.UndoBarController;
 import com.cocosw.undobar.UndoBarController.UndoListener;
 import uk.co.senab.actionbarpulltorefresh.extras.actionbarsherlock.PullToRefreshLayout;
@@ -25,9 +28,11 @@ import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
 import uk.co.senab.actionbarpulltorefresh.library.Options;
 import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.AbsListViewDelegate;
+import com.github.kevinsawicki.wishlist.ThrowableLoader;
 
 
-public class CrosswordActivity extends SherlockActivity implements OnRefreshListener, UndoListener {
+public class CrosswordActivity extends SherlockActivity
+        implements OnRefreshListener, UndoListener, LoaderCallbacks<Void> {
 
     private PullToRefreshLayout mPullToRefreshLayout;
 
@@ -86,7 +91,9 @@ public class CrosswordActivity extends SherlockActivity implements OnRefreshList
                     }
                 }
 
-                UndoBarController.show(this, "Crossword cleared", this, new Bundle());
+                Bundle b = new Bundle();
+                b.putInt(Const.UNDOBAR_MESSAGESTYLE, Const.UNDOBAR_UNDO);
+                UndoBarController.show(this, "Crossword cleared", this, b);
                 return true;
         }
 
@@ -96,6 +103,7 @@ public class CrosswordActivity extends SherlockActivity implements OnRefreshList
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.activity_crossword);
 
         GridView gridView = (GridView) findViewById(R.id.ptr_gridview);
@@ -148,7 +156,7 @@ public class CrosswordActivity extends SherlockActivity implements OnRefreshList
             @Override
             protected Void doInBackground(Void... params) {
                 try {
-                    Thread.sleep(Constants.SIMULATED_REFRESH_LENGTH);
+                    Thread.sleep(Const.SIMULATED_REFRESH_LENGTH);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -164,11 +172,54 @@ public class CrosswordActivity extends SherlockActivity implements OnRefreshList
         }.execute();
     }
 
+
+    @Override
+    public Loader<Void> onCreateLoader(int id, Bundle args) {
+        getSherlock().setProgressBarIndeterminateVisibility(true);
+
+        return new ThrowableLoader<Void>(this, null) {
+
+            @Override
+            public Void loadData() throws Exception {
+                Thread.sleep(1500);
+                throw new Exception("No connection.");
+            }
+        };
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Void> loader, Void data) {
+        final ThrowableLoader<Void> l = ((ThrowableLoader<Void>) loader);
+        if (l.getException() != null) {
+            Bundle b = new Bundle();
+            b.putInt(Const.UNDOBAR_MESSAGESTYLE, Const.UNDOBAR_RETRY);
+            UndoBarController.show(this, l.getException().getMessage(),
+                    this, b, false, UndoBarController.RETRYSTYLE);
+        } else {
+            // something todo if there is no exception
+        }
+        getSherlock().setProgressBarIndeterminateVisibility(false);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Void> loader) {
+
+    }
+
     @Override
     public void onUndo(Parcelable token) {
         if (token != null) {
-            resumeQueued = true;
-            executeResume();
+            int msgStyle = ((Bundle) token).getInt(Const.UNDOBAR_MESSAGESTYLE);
+            switch (msgStyle) {
+                case Const.UNDOBAR_UNDO:
+                    resumeQueued = true;
+                    executeResume();
+                    break;
+                case Const.UNDOBAR_RETRY:
+                    getSherlock().setProgressBarIndeterminateVisibility(false);
+                    getLoaderManager().restartLoader(0, null, this);
+                    break;
+            }
         }
     }
 
@@ -184,13 +235,14 @@ public class CrosswordActivity extends SherlockActivity implements OnRefreshList
         super.onStart();
 
         Bundle extras = getIntent().getExtras();
-        int request =  extras.getInt("request");
+        int request =  extras.getInt(Const.ACTIVITY_REQUEST);
 
-        if (request == CrosswordActivityRequest.RESUME) {
+        if (request == Const.ACTIVITY_REQUEST_RESUME) {
             resumeQueued = true;
-        } else if (request == CrosswordActivityRequest.NEW) {
+        } else if (request == Const.ACTIVITY_REQUEST_NEW) {
             SharedPreferences prefs = getPreferences(MODE_PRIVATE);
             prefs.edit().clear().commit();
+            getLoaderManager().initLoader(0, null, this);
         }
     }
 
