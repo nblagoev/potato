@@ -269,21 +269,21 @@ public class CrosswordActivity extends SherlockActivity implements OnRefreshList
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            EditText et = (EditText) convertView;
-            if (et == null) {
-                et = (EditText) mInflater.inflate(R.layout.simple_edit_box, parent, false);
-                et.setId(Util.generateViewId());
-
+            if (convertView == null) {
                 String l = getItem(position);
 
                 if (l == null || l.isEmpty()) {
-                    et.setVisibility(View.INVISIBLE);
+                    convertView = mInflater.inflate(R.layout.simple_space_box, parent, false);
                 } else {
+                    EditText et = (EditText) mInflater.inflate(R.layout.simple_edit_box, parent, false);
+                    et.setId(Util.generateViewId());
                     et.setHint(l);
                     et.setHintTextColor(et.getSolidColor());
+                    convertView = et;
                 }
             }
-            return et;
+
+            return convertView;
         }
     }
 }
