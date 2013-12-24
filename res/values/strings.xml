@@ -9,5 +9,8 @@
     <string name="github_label">Potato on GitHub</string>
     <string name="new_label">New Crossword</string>
     <string name="clear_label">Clear</string>
+    <string name="exit">Exit</string>
+    <string name="resume">Resume</string>
+    <string name="logo_descr">HotPotatoes Logo</string>
 
 </resources>

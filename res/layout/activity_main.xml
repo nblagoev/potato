@@ -5,13 +5,17 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
+    <Space
+        android:layout_width="fill_parent"
+        android:layout_height="10dp"/>
+
     <ImageView
         android:layout_width="230dp"
         android:layout_height="230dp"
         android:id="@+id/imageView"
         android:layout_gravity="center_horizontal"
         android:src="@drawable/hbs_logo"
-        android:contentDescription="HotPotatoes Logo"/>
+        android:contentDescription="@string/logo_descr"/>
 
     <Space
         android:layout_width="fill_parent"
@@ -21,7 +25,7 @@
     <Button
         android:layout_width="210dp"
         android:layout_height="wrap_content"
-        android:text="New crossword"
+        android:text="@string/new_crossword"
         android:id="@+id/new_crossword_button"
         android:layout_gravity="center_horizontal"
         android:onClick="newCrossword"/>
@@ -29,7 +33,7 @@
     <Button
         android:layout_width="210dp"
         android:layout_height="wrap_content"
-        android:text="Resume"
+        android:text="@string/resume"
         android:id="@+id/resume_button"
         android:layout_gravity="center_horizontal"
         android:onClick="resumeCrossword"/>
@@ -37,7 +41,7 @@
     <Button
         android:layout_width="210dp"
         android:layout_height="wrap_content"
-        android:text="Exit"
+        android:text="@string/exit"
         android:id="@+id/exit_button"
         android:layout_gravity="center_horizontal"
         android:onClick="exit"/>
