@@ -55,12 +55,15 @@ public class CrosswordActivity extends SherlockActivity implements OnRefreshList
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-           case android.R.id.home:
+            case android.R.id.home:
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
                 return true;
-           case R.id.github:
+            case R.id.hint:
+                Toast.makeText(this, "Across: Hint for the selected word\n Down: Hint for the word down", Toast.LENGTH_LONG).show();
+                return true;
+            case R.id.github:
                 Uri uriUrl = Uri.parse("http://github.com/nikoblag/potato");
                 Intent launchBrowser = new Intent(Intent.ACTION_VIEW, uriUrl);
                 this.startActivity(launchBrowser);

@@ -12,5 +12,6 @@
     <string name="exit">Exit</string>
     <string name="resume">Resume</string>
     <string name="logo_descr">HotPotatoes Logo</string>
+    <string name="hint_label">Hint</string>
 
 </resources>
