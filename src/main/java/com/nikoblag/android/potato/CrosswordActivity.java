@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -17,6 +18,8 @@ import android.view.View;
 
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
+import com.cocosw.undobar.UndoBarController;
+import com.cocosw.undobar.UndoBarController.UndoListener;
 import uk.co.senab.actionbarpulltorefresh.extras.actionbarsherlock.PullToRefreshLayout;
 import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
 import uk.co.senab.actionbarpulltorefresh.library.Options;
@@ -24,8 +27,7 @@ import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.AbsListViewDelegate;
 
 
-public class CrosswordActivity extends SherlockActivity
-        implements OnRefreshListener {
+public class CrosswordActivity extends SherlockActivity implements OnRefreshListener, UndoListener {
 
     private PullToRefreshLayout mPullToRefreshLayout;
 
@@ -54,14 +56,34 @@ public class CrosswordActivity extends SherlockActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
            case android.R.id.home:
-                Intent i = new Intent(this, MainActivity.class);
-                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(i);
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
                 return true;
            case R.id.github:
                 Uri uriUrl = Uri.parse("http://github.com/nikoblag/potato");
                 Intent launchBrowser = new Intent(Intent.ACTION_VIEW, uriUrl);
                 this.startActivity(launchBrowser);
+                return true;
+            case R.id.clear:
+                saveState();
+
+                GridView gridView = (GridView) findViewById(R.id.ptr_gridview);
+                final int len = gridView.getChildCount();
+
+                for (int i = 0; i < len; i++) {
+                    View v = gridView.getChildAt(i);
+                    Class c = v.getClass();
+
+                    if (c == EditText.class) {
+                        EditText et = (EditText) v;
+                        if (!et.getText().toString().isEmpty()) {
+                            et.setText("");
+                        }
+                    }
+                }
+
+                UndoBarController.show(this, "Crossword cleared", this, new Bundle());
                 return true;
         }
 
@@ -140,9 +162,36 @@ public class CrosswordActivity extends SherlockActivity
     }
 
     @Override
+    public void onUndo(Parcelable token) {
+        if (token != null) {
+            resumeQueued = true;
+            executeResume();
+        }
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
 
+        saveState();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        Bundle extras = getIntent().getExtras();
+        int request =  extras.getInt("request");
+
+        if (request == CrosswordActivityRequest.RESUME) {
+            resumeQueued = true;
+        } else if (request == CrosswordActivityRequest.NEW) {
+            SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+            prefs.edit().clear().commit();
+        }
+    }
+
+    private void saveState() {
         SharedPreferences prefs = getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit().clear();
         editor.putInt("cwd_id", 0); // TODO: put the currently loaded crossword file id
@@ -165,21 +214,6 @@ public class CrosswordActivity extends SherlockActivity
         }
 
         editor.commit();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        Bundle extras = getIntent().getExtras();
-        int request =  extras.getInt("request");
-
-        if (request == CrosswordActivityRequest.RESUME) {
-            resumeQueued = true;
-        } else if (request == CrosswordActivityRequest.NEW) {
-            SharedPreferences prefs = getPreferences(MODE_PRIVATE);
-            prefs.edit().clear().commit();
-        }
     }
 
     private void executeResume() {

@@ -61,6 +61,12 @@
             <type>apklib</type>
         </dependency>
         <dependency>
+            <groupId>com.cocosw</groupId>
+            <artifactId>UndoBar-Parent</artifactId>
+            <version>0.5-SNAPSHOT</version>
+            <type>apklib</type>
+        </dependency>
+        <dependency>
             <groupId>com.github.kevinsawicki</groupId>
             <artifactId>wishlist</artifactId>
             <version>0.9</version>
