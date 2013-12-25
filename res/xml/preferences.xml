@@ -2,6 +2,18 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
+        android:title="@string/pref_customization_title"
+        android:key="pref_key_storage_settings">
+
+        <CheckBoxPreference
+            android:key="auto_resume"
+            android:summary="@string/pref_summary_auto_resume"
+            android:title="@string/pref_title_auto_resume"
+            android:defaultValue="true"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
         android:title="@string/pref_storage_title"
         android:key="pref_key_storage_settings">
 

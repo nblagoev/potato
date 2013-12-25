@@ -7,6 +7,7 @@ import android.content.Loader;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Parcelable;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -28,7 +29,6 @@ import uk.co.senab.actionbarpulltorefresh.extras.actionbarsherlock.PullToRefresh
 import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
 import uk.co.senab.actionbarpulltorefresh.library.Options;
 import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
-import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.AbsListViewDelegate;
 import com.github.kevinsawicki.wishlist.ThrowableLoader;
 import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.ScrollYDelegate;
 
@@ -124,8 +124,12 @@ public class CrosswordActivity extends SherlockActivity
                 .useViewDelegate(ScrollView.class, new ScrollYDelegate())
                 .setup(mPullToRefreshLayout);
 
-        ActionBar actionBar = getActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+
+        if (!sharedPref.getBoolean("auto_resume", true)) {
+            ActionBar actionBar = getActionBar();
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
     }
 
     @Override
@@ -159,6 +163,7 @@ public class CrosswordActivity extends SherlockActivity
     @Override
     public Loader<Void> onCreateLoader(int id, Bundle args) {
         findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+        findViewById(R.id.logoMark).setVisibility(View.VISIBLE);
 
         return new ThrowableLoader<Void>(this, null) {
 
@@ -181,6 +186,7 @@ public class CrosswordActivity extends SherlockActivity
                     this, b, false, UndoBarController.RETRYSTYLE);
         } else {
             createCrossword();
+            findViewById(R.id.logoMark).setVisibility(View.GONE);
         }
 
         findViewById(R.id.progressBar).setVisibility(View.GONE);
@@ -202,6 +208,7 @@ public class CrosswordActivity extends SherlockActivity
                     break;
                 case Const.UNDOBAR_RETRY:
                     findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+                    findViewById(R.id.logoMark).setVisibility(View.VISIBLE);
                     getLoaderManager().restartLoader(0, null, this);
                     break;
             }
@@ -221,7 +228,7 @@ public class CrosswordActivity extends SherlockActivity
 
         Bundle extras = getIntent().getExtras();
         int request =  extras.getInt(Const.ACTIVITY_REQUEST);
-        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
 
         if (request == Const.ACTIVITY_REQUEST_RESUME) {
             int cwd_id = prefs.getInt("cwd_id", -1); // TODO: load the crossword file
@@ -316,7 +323,7 @@ public class CrosswordActivity extends SherlockActivity
     }
 
     private void saveState() {
-        final SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        final SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
         final SharedPreferences.Editor editor = prefs.edit().clear();
         editor.putInt("cwd_id", 0); // TODO: put the currently loaded crossword file id
 
@@ -338,7 +345,7 @@ public class CrosswordActivity extends SherlockActivity
         if (!resumeQueued)
             return;
 
-        final SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        final SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
         loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
             @Override
             public void execute(EditText et, Integer row, Integer col) {

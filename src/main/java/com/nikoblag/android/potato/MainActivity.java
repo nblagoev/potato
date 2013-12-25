@@ -1,5 +1,7 @@
 package com.nikoblag.android.potato;
 
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import com.actionbarsherlock.app.SherlockActivity;
 
 import android.content.Intent;
@@ -12,6 +14,20 @@ public class MainActivity extends SherlockActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+
+        if (sharedPref.getBoolean("auto_resume", true)) {
+            if (prefs.getAll().isEmpty())
+                newCrossword(null);
+            else
+                resumeCrossword(null);
+
+            finish();
+            return;
+        }
+        
         setContentView(R.layout.activity_main);
     }
 

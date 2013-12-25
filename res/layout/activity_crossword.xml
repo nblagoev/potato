@@ -34,6 +34,14 @@
 
     </ScrollView>
 
-
+    <ImageView
+        android:id="@+id/logoMark"
+        android:layout_width="230dp"
+        android:layout_height="230dp"
+        android:src="@drawable/hbs_logo"
+        android:contentDescription="@string/logo_descr"
+        android:layout_gravity="center"
+        android:alpha=".1"
+        android:visibility="invisible"/>
 
 </uk.co.senab.actionbarpulltorefresh.extras.actionbarsherlock.PullToRefreshLayout>
