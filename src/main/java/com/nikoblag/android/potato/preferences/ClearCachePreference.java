@@ -3,7 +3,12 @@ package com.nikoblag.android.potato.preferences;
 import android.content.Context;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
+
+import java.io.File;
+import java.io.FileFilter;
 
 public class ClearCachePreference extends DialogPreference {
 
@@ -18,7 +23,32 @@ public class ClearCachePreference extends DialogPreference {
         if (positiveResult)
             Toast.makeText(getContext(), "Cache cleared", Toast.LENGTH_SHORT).show();
 
-        //TODO: Clear the cached files
+        File[] files = getContext().getFilesDir().listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                return file.getName().endsWith("jcw");
+            }
+        });
+
+        for (File file : files) {
+            file.delete();
+        }
+
+        setEnabled(false);
     }
 
+    @Override
+    protected View onCreateView(ViewGroup parent) {
+        File[] files = getContext().getFilesDir().listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File file) {
+                return file.getName().endsWith("jcw");
+            }
+        });
+
+        if (files.length < 1)
+            setEnabled(false);
+
+        return super.onCreateView(parent);
+    }
 }
