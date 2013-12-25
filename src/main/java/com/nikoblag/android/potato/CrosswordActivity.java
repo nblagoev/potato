@@ -107,7 +107,6 @@ public class CrosswordActivity extends SherlockActivity
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.activity_crossword);
 
         GridView gridView = (GridView) findViewById(R.id.ptr_gridview);
@@ -179,13 +178,13 @@ public class CrosswordActivity extends SherlockActivity
 
     @Override
     public Loader<Void> onCreateLoader(int id, Bundle args) {
-        getSherlock().setProgressBarIndeterminateVisibility(true);
+        findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
 
         return new ThrowableLoader<Void>(this, null) {
 
             @Override
             public Void loadData() throws Exception {
-                Thread.sleep(1500);
+                Thread.sleep(3000);
                 throw new Exception("No connection.");
             }
         };
@@ -202,7 +201,8 @@ public class CrosswordActivity extends SherlockActivity
         } else {
             // something todo if there is no exception
         }
-        getSherlock().setProgressBarIndeterminateVisibility(false);
+
+        findViewById(R.id.progressBar).setVisibility(View.GONE);
     }
 
     @Override
@@ -220,7 +220,7 @@ public class CrosswordActivity extends SherlockActivity
                     executeResume();
                     break;
                 case Const.UNDOBAR_RETRY:
-                    getSherlock().setProgressBarIndeterminateVisibility(false);
+                    findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
                     getLoaderManager().restartLoader(0, null, this);
                     break;
             }
