@@ -71,6 +71,13 @@ public class CrosswordActivity extends SherlockActivity
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
                 return true;
+            case R.id.new_action:
+                ((ViewGroup)findViewById(R.id.crosswordGrid)).removeAllViews();
+                crosswordCreated = false;
+                findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+                findViewById(R.id.logoMark).setVisibility(View.VISIBLE);
+                getLoaderManager().restartLoader(0, null, this);
+                return true;
             case R.id.settings:
                 Intent si = new Intent(this, SettingsActivity.class);
                 startActivity(si);

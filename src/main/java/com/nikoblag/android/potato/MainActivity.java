@@ -27,7 +27,7 @@ public class MainActivity extends SherlockActivity {
             finish();
             return;
         }
-        
+
         setContentView(R.layout.activity_main);
     }
 
