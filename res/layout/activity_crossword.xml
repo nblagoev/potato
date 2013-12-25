@@ -14,18 +14,26 @@
         android:indeterminate="true"
         android:visibility="invisible"/>
 
-    <GridView
-        android:id="@+id/ptr_gridview"
-        android:layout_height="fill_parent"
+    <ScrollView
+        android:id="@+id/crosswordScroll"
         android:layout_width="fill_parent"
-        android:numColumns="auto_fit"
-        android:verticalSpacing="0dp"
-        android:horizontalSpacing="-9dp"
-        android:columnWidth="40dp"
-        android:stretchMode="columnWidth"
-        android:nextFocusRight="@+id/simple_edit_box_1"
-        android:nextFocusLeft="@+id/simple_edit_box_1"
-        android:nextFocusUp="@+id/simple_edit_box_1"
-        android:gravity="fill" />
+        android:layout_height="fill_parent">
+
+        <HorizontalScrollView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:id="@+id/crosswordGrid"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:orientation="vertical"
+                android:gravity="fill" />
+
+        </HorizontalScrollView>
+
+    </ScrollView>
+
+
 
 </uk.co.senab.actionbarpulltorefresh.extras.actionbarsherlock.PullToRefreshLayout>
