@@ -37,9 +37,36 @@
                     android:summary="@string/pref_summary_version"
                     android:title="@string/pref_title_version"/>
 
+            </PreferenceCategory>
+
+            <PreferenceCategory
+                android:title="@string/pref_title_os_licenses"
+                android:key="pref_key_os_licenses">
+
                 <Preference
-                    android:key="pref_key_os_licenses"
-                    android:title="@string/pref_title_os_licenses"/>
+                    android:key="pref_key_osl_actionbarpulltorefresh"
+                    android:title="@string/pref_title_osl_actionbarpulltorefresh"
+                    android:summary="@string/pref_summary_actionbarpulltorefresh"/>
+
+                <Preference
+                    android:key="pref_key_osl_actionbarsherlock"
+                    android:title="@string/pref_title_osl_actionbarsherlock"
+                    android:summary="@string/pref_summary_actionbarsherlock"/>
+
+                <Preference
+                    android:key="pref_key_osl_smoothprogressbar"
+                    android:title="@string/pref_title_osl_smoothprogressbar"
+                    android:summary="@string/pref_summary_smoothprogressbar"/>
+
+                <Preference
+                    android:key="pref_key_osl_undobar"
+                    android:title="@string/pref_title_osl_undobar"
+                    android:summary="@string/pref_summary_undobar"/>
+
+                <Preference
+                    android:key="pref_key_osl_wishlist"
+                    android:title="@string/pref_title_osl_wishlist"
+                    android:summary="@string/pref_summary_wishlist"/>
 
             </PreferenceCategory>
 

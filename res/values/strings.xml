@@ -24,7 +24,17 @@
     <string name="pref_summary_version">1.1</string>
     <string name="pref_title_version">Version</string>
     <string name="activity_settings">Settings</string>
-    <string name="pref_title_os_licenses">Open source licenses</string>
+    <string name="pref_title_os_licenses">Open-source licenses</string>
     <string name="validate_label">Validate</string>
+    <string name="pref_title_osl_wishlist">Wishlist</string>
+    <string name="pref_summary_wishlist">Alexander Blom (Apache License, Version 2.0)</string>
+    <string name="pref_title_osl_smoothprogressbar">SmoothProgressBar</string>
+    <string name="pref_summary_smoothprogressbar">Antoine Merle (The Beer-ware License)</string>
+    <string name="pref_summary_actionbarpulltorefresh">Chris Banes (Apache License, Version 2.0)</string>
+    <string name="pref_title_osl_actionbarpulltorefresh">ActionBar PullToRefresh</string>
+    <string name="pref_summary_undobar">Roman Nurik (Apache License, Version 2.0)</string>
+    <string name="pref_title_osl_undobar">UndoBar</string>
+    <string name="pref_title_osl_actionbarsherlock">ActionBarSherlock</string>
+    <string name="pref_summary_actionbarsherlock">Jake Wharton (Apache License, Version 2.0)</string>
 
 </resources>
