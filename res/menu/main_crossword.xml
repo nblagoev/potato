@@ -6,22 +6,25 @@
         android:id="@+id/hint"
         android:icon="@drawable/ic_action_info"
         android:showAsAction="always"
-        android:title="@string/hint_label"
-        android:visible="true" />
+        android:title="@string/hint_label" />
 
     <item
-        android:id="@+id/clear"
-        android:icon="@drawable/ic_action_backspace"
+        android:id="@+id/validate"
+        android:icon="@drawable/ic_action_accept"
         android:showAsAction="always"
-        android:title="@string/clear_label"
-        android:visible="true" />
+        android:title="@string/validate_label" />
 
     <item
         android:id="@+id/new_action"
         android:icon="@drawable/ic_action_new"
         android:showAsAction="ifRoom"
-        android:title="@string/new_label"
-        android:visible="true" />
+        android:title="@string/new_label" />
+
+    <item
+        android:id="@+id/clear"
+        android:icon="@drawable/ic_action_backspace"
+        android:showAsAction="ifRoom"
+        android:title="@string/clear_label" />
 
     <item
         android:id="@+id/settings"
@@ -33,6 +36,5 @@
         android:icon="@drawable/ic_action_github"
         android:showAsAction="ifRoom"
         android:title="@string/github_label"
-        android:titleCondensed="@string/github"
-        android:visible="true" />
+        android:titleCondensed="@string/github" />
 </menu>

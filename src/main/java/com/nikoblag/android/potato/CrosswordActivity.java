@@ -77,6 +77,9 @@ public class CrosswordActivity extends SherlockActivity
                 Intent launchBrowser = new Intent(Intent.ACTION_VIEW, uriUrl);
                 this.startActivity(launchBrowser);
                 return true;
+            case R.id.validate:
+                validateCrosswordGrid(findViewById(R.id.ptr_gridview), true);
+                return true;
             case R.id.clear:
                 saveState();
 
@@ -133,25 +136,10 @@ public class CrosswordActivity extends SherlockActivity
     }
 
     @Override
-    public void onRefreshStarted(final View view) {
+    public void onRefreshStarted(View view) {
         // Note: Android views can't be manipulated outside the thread
         // that was used to create them
-        GridView gridView = (GridView) view;
-        final int len = gridView.getChildCount();
-
-        for (int i = 0; i < len; i++) {
-            View v = gridView.getChildAt(i);
-            Class c = v.getClass();
-
-            if (c == EditText.class) {
-                EditText et = (EditText) v;
-                if (!et.getText().toString().equals(et.getHint())) {
-                    et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid);
-                } else {
-                    et.setBackgroundResource(R.drawable.edit_text_holo_light);
-                }
-            }
-        }
+        validateCrosswordGrid(view, false);
 
         // Leaving this refresh simulation, because it fixes the UI glitch
         // caused by the fast execution of the above code
@@ -174,7 +162,6 @@ public class CrosswordActivity extends SherlockActivity
             }
         }.execute();
     }
-
 
     @Override
     public Loader<Void> onCreateLoader(int id, Bundle args) {
@@ -248,6 +235,28 @@ public class CrosswordActivity extends SherlockActivity
             prefs.edit().clear().commit();
             getLoaderManager().initLoader(0, null, this);
         }
+    }
+
+    private void validateCrosswordGrid(View view, boolean announce) {
+        GridView gridView = (GridView) view;
+        final int len = gridView.getChildCount();
+
+        for (int i = 0; i < len; i++) {
+            View v = gridView.getChildAt(i);
+            Class c = v.getClass();
+
+            if (c == EditText.class) {
+                EditText et = (EditText) v;
+                if (!et.getText().toString().equals(et.getHint())) {
+                    et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid);
+                } else {
+                    et.setBackgroundResource(R.drawable.edit_text_holo_light);
+                }
+            }
+        }
+
+        if (announce)
+            Toast.makeText(this, "Validation complete", Toast.LENGTH_SHORT).show();
     }
 
     private void saveState() {
