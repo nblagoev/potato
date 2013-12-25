@@ -1,4 +1,4 @@
-package com.nikoblag.android.potato;
+package com.nikoblag.android.potato.util;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

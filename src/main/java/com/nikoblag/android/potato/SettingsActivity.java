@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.view.MenuItem;
+import com.nikoblag.android.potato.util.Const;
 
 public class SettingsActivity extends PreferenceActivity {
 

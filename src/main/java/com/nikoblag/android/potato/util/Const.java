@@ -1,5 +1,5 @@
 
-package com.nikoblag.android.potato;
+package com.nikoblag.android.potato.util;
 
 public class Const {
 
