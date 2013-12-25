@@ -65,6 +65,10 @@ public class CrosswordActivity extends SherlockActivity
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
                 return true;
+            case R.id.settings:
+                Intent si = new Intent(this, SettingsActivity.class);
+                startActivity(si);
+                return true;
             case R.id.hint:
                 Toast.makeText(this, "Across: Hint for the selected word\n Down: Hint for the word down", Toast.LENGTH_LONG).show();
                 return true;

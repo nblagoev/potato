@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="@string/pref_storage_title"
+        android:key="pref_key_storage_settings">
+
+        <com.nikoblag.android.potato.preferences.ClearCachePreference
+            android:key="pref_key_delete_cache"
+            android:summary="@string/pref_summary_delete_cache"
+            android:title="@string/pref_title_delete_cache"
+            android:dialogMessage="@string/clear_cache_dialog_message"
+            android:dialogTitle="@null"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/pref_about_title"
+        android:key="pref_key_about_settings">
+
+        <PreferenceScreen
+            android:key="button_about_category_key"
+            android:title="@string/about"
+            android:persistent="false">
+
+            <PreferenceCategory
+                android:title="@string/pref_about_title"
+                android:key="pref_key_about_settings">
+
+                <Preference
+                    android:key="pref_key_author"
+                    android:summary="@string/pref_summary_author"
+                    android:title="@string/pref_title_author"/>
+
+                <Preference
+                    android:key="pref_key_version"
+                    android:summary="@string/pref_summary_version"
+                    android:title="@string/pref_title_version"/>
+
+                <Preference
+                    android:key="pref_key_os_licenses"
+                    android:title="@string/pref_title_os_licenses"/>
+
+            </PreferenceCategory>
+
+        </PreferenceScreen>
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
