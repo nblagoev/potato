@@ -6,37 +6,38 @@ import android.content.Intent;
 import android.content.Loader;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.*;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.Toast;
+
+import com.nikoblag.android.potato.util.Const;
+import com.nikoblag.android.potato.util.CrosswordLoopFunction;
+import com.nikoblag.android.potato.util.Util;
+
 import com.actionbarsherlock.app.SherlockActivity;
-
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.view.View;
-
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.cocosw.undobar.UndoBarController;
 import com.cocosw.undobar.UndoBarController.UndoListener;
-import com.nikoblag.android.potato.util.Const;
-import com.nikoblag.android.potato.util.CrosswordLoopFunction;
-import com.nikoblag.android.potato.util.Util;
+import com.github.kevinsawicki.wishlist.ThrowableLoader;
 import uk.co.senab.actionbarpulltorefresh.extras.actionbarsherlock.PullToRefreshLayout;
 import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
 import uk.co.senab.actionbarpulltorefresh.library.Options;
 import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
-import com.github.kevinsawicki.wishlist.ThrowableLoader;
 import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.ScrollYDelegate;
 
 
 public class CrosswordActivity extends SherlockActivity
         implements OnRefreshListener, UndoListener, LoaderCallbacks<Void> {
-
-    private PullToRefreshLayout mPullToRefreshLayout;
 
     private static String[][] ITEMS = {
             {"", "", "", "3", "4", "5", "6", "7", "", ""},
@@ -55,6 +56,7 @@ public class CrosswordActivity extends SherlockActivity
 
     private boolean resumeQueued = false;
     private boolean crosswordCreated = false;
+    private PullToRefreshLayout mPullToRefreshLayout;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -72,7 +74,7 @@ public class CrosswordActivity extends SherlockActivity
                 startActivity(intent);
                 return true;
             case R.id.new_action:
-                ((ViewGroup)findViewById(R.id.crosswordGrid)).removeAllViews();
+                ((ViewGroup) findViewById(R.id.crosswordGrid)).removeAllViews();
                 crosswordCreated = false;
                 findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
                 findViewById(R.id.logoMark).setVisibility(View.VISIBLE);
@@ -183,6 +185,7 @@ public class CrosswordActivity extends SherlockActivity
         };
     }
 
+    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     @Override
     public void onLoadFinished(Loader<Void> loader, Void data) {
         final ThrowableLoader<Void> l = ((ThrowableLoader<Void>) loader);
@@ -234,10 +237,11 @@ public class CrosswordActivity extends SherlockActivity
         super.onStart();
 
         Bundle extras = getIntent().getExtras();
-        int request =  extras.getInt(Const.ACTIVITY_REQUEST);
+        int request = extras.getInt(Const.ACTIVITY_REQUEST);
         SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
 
         if (request == Const.ACTIVITY_REQUEST_RESUME) {
+            @SuppressWarnings("UnusedDeclaration")
             int cwd_id = prefs.getInt("cwd_id", -1); // TODO: load the crossword file
 
             // Simulate a crossword file rendering
@@ -256,20 +260,18 @@ public class CrosswordActivity extends SherlockActivity
         LinearLayout grid = (LinearLayout) findViewById(R.id.crosswordGrid);
         LayoutInflater inflater = LayoutInflater.from(this);
 
-        for (int i = 0; i < ITEMS.length; i++) {
-            ViewGroup row = (ViewGroup) inflater.inflate(R.layout.simple_grid_row, grid, false);
-            grid.addView(row);
-            for (int j = 0; j < ITEMS[i].length; j++) {
-                String l = ITEMS[i][j];
-
-                if (l == null || l.isEmpty()) {
-                    row.addView(inflater.inflate(R.layout.simple_space_box, row, false));
+        for (String[] row : ITEMS) {
+            ViewGroup rowView = (ViewGroup) inflater.inflate(R.layout.simple_grid_row, grid, false);
+            grid.addView(rowView);
+            for (String hint : row) {
+                if (hint == null || hint.isEmpty()) {
+                    rowView.addView(inflater.inflate(R.layout.simple_space_box, rowView, false));
                 } else {
-                    EditText et = (EditText) inflater.inflate(R.layout.simple_edit_box, row, false);
+                    EditText et = (EditText) inflater.inflate(R.layout.simple_edit_box, rowView, false);
                     et.setId(Util.generateViewId());
-                    et.setHint(l);
+                    et.setHint(hint);
                     et.setHintTextColor(et.getSolidColor());
-                    row.addView(et);
+                    rowView.addView(et);
                 }
             }
         }
@@ -293,10 +295,8 @@ public class CrosswordActivity extends SherlockActivity
                     View v2 = row.getChildAt(j);
                     Class c2 = v2.getClass();
 
-                    if (c2 == EditText.class) {
-                        EditText et = (EditText) v2;
-                        func.execute(et, i, j);
-                    }
+                    if (c2 == EditText.class)
+                        func.execute((EditText) v2, i, j);
                 }
             }
         }
@@ -306,9 +306,8 @@ public class CrosswordActivity extends SherlockActivity
         loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
             @Override
             public void execute(EditText et, Integer row, Integer col) {
-                if (!et.getText().toString().isEmpty()) {
+                if (!et.getText().toString().isEmpty())
                     et.setText("");
-                }
             }
         });
     }
@@ -317,11 +316,10 @@ public class CrosswordActivity extends SherlockActivity
         loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
             @Override
             public void execute(EditText et, Integer row, Integer col) {
-                if (!et.getText().toString().equals(et.getHint())) {
+                if (!et.getText().toString().equals(et.getHint()))
                     et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid);
-                } else {
+                else
                     et.setBackgroundResource(R.drawable.edit_text_holo_light);
-                }
             }
         });
 
@@ -339,9 +337,8 @@ public class CrosswordActivity extends SherlockActivity
             public void execute(EditText et, Integer row, Integer col) {
                 String val = et.getText().toString();
                 // save the non-empty values only, no need to flood the prefs
-                if (!val.isEmpty()) {
+                if (!val.isEmpty())
                     editor.putString("box_" + row + "_" + col, val);
-                }
             }
         });
 
@@ -357,9 +354,8 @@ public class CrosswordActivity extends SherlockActivity
             @Override
             public void execute(EditText et, Integer row, Integer col) {
                 String val = prefs.getString("box_" + row + "_" + col, "");
-                if (!val.isEmpty()) {
+                if (!val.isEmpty())
                     et.setText(val);
-                }
             }
         });
 

@@ -20,21 +20,22 @@ public class ClearCachePreference extends DialogPreference {
     protected void onDialogClosed(boolean positiveResult) {
         super.onDialogClosed(positiveResult);
 
-        if (positiveResult)
-            Toast.makeText(getContext(), "Cache cleared", Toast.LENGTH_SHORT).show();
+        if (positiveResult) {
+            File[] files = getContext().getFilesDir().listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File file) {
+                    return file.getName().endsWith("jcw");
+                }
+            });
 
-        File[] files = getContext().getFilesDir().listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File file) {
-                return file.getName().endsWith("jcw");
+            for (File file : files) {
+                file.delete();
             }
-        });
 
-        for (File file : files) {
-            file.delete();
+            setEnabled(false);
+
+            Toast.makeText(getContext(), "Cache cleared", Toast.LENGTH_SHORT).show();
         }
-
-        setEnabled(false);
     }
 
     @Override
