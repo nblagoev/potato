@@ -90,7 +90,7 @@ public class CrosswordActivity extends SherlockActivity
             case R.id.github:
                 Uri uriUrl = Uri.parse("http://github.com/nikoblag/potato");
                 Intent launchBrowser = new Intent(Intent.ACTION_VIEW, uriUrl);
-                this.startActivity(launchBrowser);
+                startActivity(launchBrowser);
                 return true;
             case R.id.validate:
                 validateCrosswordGrid(true);
@@ -178,6 +178,7 @@ public class CrosswordActivity extends SherlockActivity
 
             @Override
             public Void loadData() throws Exception {
+
                 Thread.sleep(1500);
                 //throw new Exception("No connection.");
                 return null;

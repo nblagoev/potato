@@ -62,8 +62,8 @@
         </dependency>
         <dependency>
             <groupId>com.cocosw</groupId>
-            <artifactId>UndoBar-Parent</artifactId>
-            <version>0.5-SNAPSHOT</version>
+            <artifactId>undobar</artifactId>
+            <version>0.4</version>
             <type>apklib</type>
         </dependency>
     </dependencies>
