@@ -2,6 +2,7 @@ package com.nikoblag.android.potato;
 
 import android.app.ActionBar;
 import android.app.LoaderManager.LoaderCallbacks;
+import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.SharedPreferences;
@@ -9,6 +10,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,33 +31,27 @@ import com.actionbarsherlock.view.MenuItem;
 import com.cocosw.undobar.UndoBarController;
 import com.cocosw.undobar.UndoBarController.UndoListener;
 import com.github.kevinsawicki.wishlist.ThrowableLoader;
+import org.xmlpull.v1.XmlPullParserException;
 import uk.co.senab.actionbarpulltorefresh.extras.actionbarsherlock.PullToRefreshLayout;
 import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
 import uk.co.senab.actionbarpulltorefresh.library.Options;
 import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.ScrollYDelegate;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.List;
+import java.util.Properties;
+
 
 public class CrosswordActivity extends SherlockActivity
-        implements OnRefreshListener, UndoListener, LoaderCallbacks<Void> {
-
-    private static String[][] ITEMS = {
-            {"", "", "", "3", "4", "5", "6", "7", "", ""},
-            {"", "1", "2", "3", "4", "", "", "7", "", ""},
-            {"", "", "", "", "4", "5", "6", "7", "8", "9"},
-            {"", "", "", "3", "4", "5", "6", "7", "8", ""},
-            {"", "", "", "3", "", "", "", "", "8", ""},
-            {"0", "", "", "3", "", "", "", "", "8", ""},
-            {"0", "1", "2", "3", "4", "", "", "", "8", ""},
-            {"0", "", "", "", "", "", "", "", "8", ""},
-            {"0", "", "", "", "", "", "", "", "8", ""},
-            {"0", "", "", "", "", "", "", "", "8", ""},
-            {"", "", "", "", "", "", "6", "7", "8", "9"},
-            {"", "", "", "", "", "", "", "", "8", ""},
-            {"", "", "", "", "", "", "", "", "8", ""}};
+        implements OnRefreshListener, UndoListener, LoaderCallbacks<List<List<String>>> {
 
     private boolean resumeQueued = false;
     private boolean crosswordCreated = false;
+    private int loadedCID = -1;
     private PullToRefreshLayout mPullToRefreshLayout;
 
     @Override
@@ -170,33 +166,75 @@ public class CrosswordActivity extends SherlockActivity
     }
 
     @Override
-    public Loader<Void> onCreateLoader(int id, Bundle args) {
+    public Loader<List<List<String>>> onCreateLoader(int id, Bundle args) {
         findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
         findViewById(R.id.logoMark).setVisibility(View.VISIBLE);
 
-        return new ThrowableLoader<Void>(this, null) {
+        return new ThrowableLoader<List<List<String>>>(this, null) {
 
             @Override
-            public Void loadData() throws Exception {
+            public List<List<String>> loadData() throws Exception {
+                Properties props = new Properties();
+                File meta = new File(getFilesDir().getPath() + "/.meta");
+                int max;
 
-                Thread.sleep(1500);
-                //throw new Exception("No connection.");
-                return null;
+                // check for internet connection, if not available try to
+                // parse the cached files (if any)
+                if (!Util.isNetworkAvailable(CrosswordActivity.this) && meta.exists()) {
+                    props.load(new FileInputStream(meta));
+                    max = Integer.parseInt(props.getProperty("max_id"));
+                    // should we set the loadedCID after the crossword was
+                    // successfully rendered?
+                    loadedCID = Util.randomCrosswordId(max);
+
+                    String cfn = loadedCID + ".jcw";
+                    File file = new File(getFilesDir().getPath() + "/" + cfn);
+
+                    if (file.exists())
+                        return Util.XTable.generate(new FileInputStream(file));
+                }
+
+                // take CPU lock to prevent CPU from going off if the user
+                // presses the power button during download
+                PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+                PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
+                wl.acquire();
+
+                FileInputStream jcross;
+
+                try {
+                    props.load(Util.downloadAndOpenFile(CrosswordActivity.this, Const.POTATO_METAFILE_URL, ".meta"));
+                    max = Integer.parseInt(props.getProperty("max_id"));
+                    loadedCID = Util.randomCrosswordId(max);
+
+                    String cfn = loadedCID + ".jcw";
+                    File file = new File(getFilesDir().getPath() + "/" + cfn);
+                    if (file.exists())
+                        jcross = new FileInputStream(file);
+                    else
+                        jcross = Util.downloadAndOpenFile(CrosswordActivity.this, Const.POTATO_DROPBOX_URL + cfn, cfn);
+                } catch (UnknownHostException e) {
+                    throw new Exception("No connection.");
+                } finally {
+                    wl.release();
+                }
+
+                return Util.XTable.generate(jcross);
             }
         };
     }
 
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     @Override
-    public void onLoadFinished(Loader<Void> loader, Void data) {
-        final ThrowableLoader<Void> l = ((ThrowableLoader<Void>) loader);
+    public void onLoadFinished(Loader<List<List<String>>> loader, List<List<String>> data) {
+        final ThrowableLoader<List<List<String>>> l = ((ThrowableLoader<List<List<String>>>) loader);
         if (l.getException() != null) {
             Bundle b = new Bundle();
             b.putInt(Const.UNDOBAR_MESSAGESTYLE, Const.UNDOBAR_RETRY);
             UndoBarController.show(this, l.getException().getMessage(),
                     this, b, false, UndoBarController.RETRYSTYLE);
         } else {
-            createCrossword();
+            createCrossword(data);
             findViewById(R.id.logoMark).setVisibility(View.GONE);
         }
 
@@ -204,7 +242,7 @@ public class CrosswordActivity extends SherlockActivity
     }
 
     @Override
-    public void onLoaderReset(Loader<Void> loader) {
+    public void onLoaderReset(Loader<List<List<String>>> loader) {
 
     }
 
@@ -242,26 +280,32 @@ public class CrosswordActivity extends SherlockActivity
         SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
 
         if (request == Const.ACTIVITY_REQUEST_RESUME) {
-            @SuppressWarnings("UnusedDeclaration")
-            int cwd_id = prefs.getInt("cwd_id", -1); // TODO: load the crossword file
+            loadedCID = prefs.getInt("cid", -1);
 
-            // Simulate a crossword file rendering
-            createCrossword();
-            resumeQueued = true;
+            String cfn = loadedCID + ".jcw";
+            File file = new File(getFilesDir().getPath() + "/" + cfn);
+
+            try {
+                createCrossword(Util.XTable.generate(new FileInputStream(file)));
+                resumeQueued = true;
+            } catch (Exception ignored) {
+                prefs.edit().clear().commit();
+                getLoaderManager().initLoader(0, null, this);
+            }
         } else if (request == Const.ACTIVITY_REQUEST_NEW) {
             prefs.edit().clear().commit();
             getLoaderManager().initLoader(0, null, this);
         }
     }
 
-    private void createCrossword() {
+    private void createCrossword(List<List<String>> xtable) {
         if (crosswordCreated)
             return;
 
         LinearLayout grid = (LinearLayout) findViewById(R.id.crosswordGrid);
         LayoutInflater inflater = LayoutInflater.from(this);
 
-        for (String[] row : ITEMS) {
+        for (List<String> row : xtable) {
             ViewGroup rowView = (ViewGroup) inflater.inflate(R.layout.simple_grid_row, grid, false);
             grid.addView(rowView);
             for (String hint : row) {
@@ -331,7 +375,7 @@ public class CrosswordActivity extends SherlockActivity
     private void saveState() {
         final SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
         final SharedPreferences.Editor editor = prefs.edit().clear();
-        editor.putInt("cwd_id", 0); // TODO: put the currently loaded crossword file id
+        editor.putInt("cid", loadedCID);
 
         loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
             @Override
