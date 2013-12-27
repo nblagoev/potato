@@ -17,12 +17,24 @@
         android:title="@string/pref_storage_title"
         android:key="pref_key_storage_settings">
 
+        <CheckBoxPreference
+            android:key="pref_key_offline_mode"
+            android:summary="@string/pref_summary_offline_mode"
+            android:title="@string/pref_title_offline_mode"
+            android:defaultValue="false"
+            android:enabled="false"/>
+
+        <com.nikoblag.android.potato.preferences.CacheInfoPreference
+            android:key="pref_key_cache_info"
+            android:title="@string/pref_title_cache_info"
+            android:summary="@string/pref_summary_cache_info"
+            android:enabled="false"/>
+
         <com.nikoblag.android.potato.preferences.ClearCachePreference
             android:key="pref_key_delete_cache"
             android:summary="@string/pref_summary_delete_cache"
             android:title="@string/pref_title_delete_cache"
-            android:dialogMessage="@string/clear_cache_dialog_message"
-            android:dialogTitle="@null"/>
+            android:dialogMessage="@string/clear_cache_dialog_message"/>
 
     </PreferenceCategory>
 
@@ -42,12 +54,14 @@
                 <Preference
                     android:key="pref_key_author"
                     android:summary="@string/pref_summary_author"
-                    android:title="@string/pref_title_author"/>
+                    android:title="@string/pref_title_author"
+                    android:enabled="false"/>
 
                 <Preference
                     android:key="pref_key_version"
                     android:summary="@string/pref_summary_version"
-                    android:title="@string/pref_title_version"/>
+                    android:title="@string/pref_title_version"
+                    android:enabled="false"/>
 
             </PreferenceCategory>
 
@@ -58,27 +72,32 @@
                 <Preference
                     android:key="pref_key_osl_actionbarpulltorefresh"
                     android:title="@string/pref_title_osl_actionbarpulltorefresh"
-                    android:summary="@string/pref_summary_actionbarpulltorefresh"/>
+                    android:summary="@string/pref_summary_actionbarpulltorefresh"
+                    android:enabled="false"/>
 
                 <Preference
                     android:key="pref_key_osl_actionbarsherlock"
                     android:title="@string/pref_title_osl_actionbarsherlock"
-                    android:summary="@string/pref_summary_actionbarsherlock"/>
+                    android:summary="@string/pref_summary_actionbarsherlock"
+                    android:enabled="false"/>
 
                 <Preference
                     android:key="pref_key_osl_smoothprogressbar"
                     android:title="@string/pref_title_osl_smoothprogressbar"
-                    android:summary="@string/pref_summary_smoothprogressbar"/>
+                    android:summary="@string/pref_summary_smoothprogressbar"
+                    android:enabled="false"/>
 
                 <Preference
                     android:key="pref_key_osl_undobar"
                     android:title="@string/pref_title_osl_undobar"
-                    android:summary="@string/pref_summary_undobar"/>
+                    android:summary="@string/pref_summary_undobar"
+                    android:enabled="false"/>
 
                 <Preference
                     android:key="pref_key_osl_wishlist"
                     android:title="@string/pref_title_osl_wishlist"
-                    android:summary="@string/pref_summary_wishlist"/>
+                    android:summary="@string/pref_summary_wishlist"
+                    android:enabled="false"/>
 
             </PreferenceCategory>
 

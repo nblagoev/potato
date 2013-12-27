@@ -95,6 +95,16 @@ public final class Util {
         return 1 + (int) (Math.random() * max);
     }
 
+    public static String sizeToString(long size) {
+        if (size < 1024)
+            return size + " bytes";
+
+        int exp = (int) (Math.log(size) / Math.log(1024));
+        String pre = "KMGTPE".charAt(exp - 1) + "";
+
+        return String.format("%.1f %sB", size / Math.pow(1024, exp), pre);
+    }
+
     public static class XTable {
         public static List<List<String>> generate(InputStream jcross) throws XmlPullParserException, IOException {
             try {
@@ -200,7 +210,7 @@ public final class Util {
         private static void skip(XmlPullParser parser) throws XmlPullParserException, IOException {
             if (parser.getEventType() != XmlPullParser.START_TAG)
                 throw new IllegalStateException();
-            
+
             int depth = 1;
             while (depth != 0) {
                 switch (parser.next()) {
