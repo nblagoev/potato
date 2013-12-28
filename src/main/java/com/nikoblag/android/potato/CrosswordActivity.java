@@ -31,7 +31,8 @@ import com.actionbarsherlock.view.MenuItem;
 import com.cocosw.undobar.UndoBarController;
 import com.cocosw.undobar.UndoBarController.UndoListener;
 import com.github.kevinsawicki.wishlist.ThrowableLoader;
-import org.xmlpull.v1.XmlPullParserException;
+import com.nikoblag.android.potato.util.XTable;
+import com.nikoblag.android.potato.util.XTag;
 import uk.co.senab.actionbarpulltorefresh.extras.actionbarsherlock.PullToRefreshLayout;
 import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
 import uk.co.senab.actionbarpulltorefresh.library.Options;
@@ -40,14 +41,15 @@ import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.ScrollYDelegate;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 
 public class CrosswordActivity extends SherlockActivity
-        implements OnRefreshListener, UndoListener, LoaderCallbacks<List<List<String>>> {
+        implements OnRefreshListener, UndoListener, LoaderCallbacks<XTable> {
 
     private boolean resumeQueued = false;
     private boolean crosswordCreated = false;
@@ -81,7 +83,21 @@ public class CrosswordActivity extends SherlockActivity
                 startActivity(si);
                 return true;
             case R.id.hint:
-                Toast.makeText(this, "Across: Hint for the selected word\n Down: Hint for the word down", Toast.LENGTH_LONG).show();
+                EditText box = (EditText) getCurrentFocus();
+                if (box != null) {
+                    XTag tag = (XTag) box.getTag();
+                    String msg = "";
+
+                    if (!Util.empty(tag.definitionA))
+                        msg += "Across: " + tag.definitionA;
+
+                    if (!Util.empty(tag.definitionD))
+                        msg += (msg.length() > 0 ? "\n" : "") + "Down: " + tag.definitionD;
+
+                    Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(this, "For hints, select a text box", Toast.LENGTH_SHORT).show();
+                }
                 return true;
             case R.id.github:
                 Uri uriUrl = Uri.parse("http://github.com/nikoblag/potato");
@@ -166,14 +182,14 @@ public class CrosswordActivity extends SherlockActivity
     }
 
     @Override
-    public Loader<List<List<String>>> onCreateLoader(int id, Bundle args) {
+    public Loader<XTable> onCreateLoader(int id, Bundle args) {
         findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
         findViewById(R.id.logoMark).setVisibility(View.VISIBLE);
 
-        return new ThrowableLoader<List<List<String>>>(this, null) {
+        return new ThrowableLoader<XTable>(this, null) {
 
             @Override
-            public List<List<String>> loadData() throws Exception {
+            public XTable loadData() throws Exception {
                 Properties props = new Properties();
                 File meta = new File(getFilesDir().getPath() + "/.meta");
                 int max;
@@ -191,7 +207,7 @@ public class CrosswordActivity extends SherlockActivity
                     File file = new File(getFilesDir().getPath() + "/" + cfn);
 
                     if (file.exists())
-                        return Util.XTable.generate(new FileInputStream(file));
+                        return XTable.generate(new FileInputStream(file));
                 }
 
                 // take CPU lock to prevent CPU from going off if the user
@@ -219,15 +235,15 @@ public class CrosswordActivity extends SherlockActivity
                     wl.release();
                 }
 
-                return Util.XTable.generate(jcross);
+                return XTable.generate(jcross);
             }
         };
     }
 
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     @Override
-    public void onLoadFinished(Loader<List<List<String>>> loader, List<List<String>> data) {
-        final ThrowableLoader<List<List<String>>> l = ((ThrowableLoader<List<List<String>>>) loader);
+    public void onLoadFinished(Loader<XTable> loader, XTable data) {
+        final ThrowableLoader<XTable> l = ((ThrowableLoader<XTable>) loader);
         if (l.getException() != null) {
             Bundle b = new Bundle();
             b.putInt(Const.UNDOBAR_MESSAGESTYLE, Const.UNDOBAR_RETRY);
@@ -242,7 +258,7 @@ public class CrosswordActivity extends SherlockActivity
     }
 
     @Override
-    public void onLoaderReset(Loader<List<List<String>>> loader) {
+    public void onLoaderReset(Loader<XTable> loader) {
 
     }
 
@@ -286,7 +302,7 @@ public class CrosswordActivity extends SherlockActivity
             File file = new File(getFilesDir().getPath() + "/" + cfn);
 
             try {
-                createCrossword(Util.XTable.generate(new FileInputStream(file)));
+                createCrossword(XTable.generate(new FileInputStream(file)));
                 resumeQueued = true;
             } catch (Exception ignored) {
                 prefs.edit().clear().commit();
@@ -298,30 +314,126 @@ public class CrosswordActivity extends SherlockActivity
         }
     }
 
-    private void createCrossword(List<List<String>> xtable) {
+    private void createCrossword(XTable xtable) {
         if (crosswordCreated)
             return;
 
         LinearLayout grid = (LinearLayout) findViewById(R.id.crosswordGrid);
         LayoutInflater inflater = LayoutInflater.from(this);
 
-        for (List<String> row : xtable) {
+        int gridLen = xtable.grid.size();
+        for (int i = 0; i < gridLen; i++) {
+            List<String> row = xtable.grid.get(i);
             ViewGroup rowView = (ViewGroup) inflater.inflate(R.layout.simple_grid_row, grid, false);
             grid.addView(rowView);
-            for (String hint : row) {
-                if (hint == null || hint.isEmpty()) {
+            int rowLen = row.size();
+            for (int j = 0; j < rowLen; j++) {
+                String hint = row.get(j);
+                if (Util.empty(hint)) {
                     rowView.addView(inflater.inflate(R.layout.simple_space_box, rowView, false));
                 } else {
+                    String defA = null;
+                    String defD = null;
                     EditText et = (EditText) inflater.inflate(R.layout.simple_edit_box, rowView, false);
-                    et.setId(Util.generateViewId());
-                    et.setHint(hint);
-                    et.setHintTextColor(et.getSolidColor());
+                    et.setId(Util.getBoxId(i, j));
+
+                    // now we have to find the definition for the word this box is part of
+                    String prevHint;
+                    String nextHint = "";
+                    String aboveHint;
+                    String belowHint = "";
+
+                    prevHint = (j > 0) ? row.get(j - 1) : "";
+
+                    if (Util.empty(prevHint)) {
+                        // previous is a space, try the next
+                        nextHint = (j < rowLen - 1) ? row.get(j + 1) : "";
+
+                        if (!Util.empty(nextHint)) {
+                            String k = findAcrossDefinitionKey(hint, nextHint, row, j + 1, xtable.clues.keySet());
+                            defA = xtable.clues.get(k);
+                        } // else, next is a space, ignore it; maybe there is a box above/below
+                    } else {
+                        // previous is a box, use its definition (Across)
+                        EditText box = (EditText) findViewById(Util.getBoxId(i, j - 1));
+                        XTag t = (XTag) box.getTag();
+                        defA = t.definitionA;
+                    }
+
+                    List<String> rowAbove = (i > 0) ? xtable.grid.get(i - 1) : null;
+                    aboveHint = (rowAbove != null && j < rowAbove.size()) ? rowAbove.get(j) : "";
+                    if (Util.empty(aboveHint)) {
+                        // above is a space, try the one below
+                        List<String> rowBelow = (i < gridLen - 1) ? xtable.grid.get(i + 1) : null;
+                        belowHint = (rowBelow != null && j < rowBelow.size()) ? rowBelow.get(j) : "";
+
+                        if (!Util.empty(belowHint)) {
+                            String k = findDownDefinitionKey(hint, belowHint, xtable.grid, i + 1, j, xtable.clues.keySet());
+                            defD = xtable.clues.get(k);
+                        } // else, the one a below is space, ignore it
+                    } else {
+                        // above is a box, use it's definition (Down)
+                        EditText box = (EditText) findViewById(Util.getBoxId(i - 1, j));
+                        XTag t = (XTag) box.getTag();
+                        defD = t.definitionD;
+                    }
+
+                    int type = XTag.INNER;
+
+                    if (Util.empty(prevHint) && Util.empty(aboveHint) && !Util.empty(belowHint) && !Util.empty(nextHint)) {
+                        et.setBackgroundResource(R.drawable.edit_text_holo_light_across_down);
+                        type = XTag.ACROSS_DOWN;
+                    } else if (Util.empty(prevHint) && Util.empty(belowHint) && !Util.empty(nextHint)) {
+                        et.setBackgroundResource(R.drawable.edit_text_holo_light_across);
+                        type = XTag.ACROSS;
+                    } else if (Util.empty(aboveHint) && !Util.empty(belowHint) && Util.empty(nextHint)) {
+                        et.setBackgroundResource(R.drawable.edit_text_holo_light_down);
+                        type = XTag.DOWN;
+                    }
+
+                    et.setTag(new XTag(type, hint, defA, defD));
                     rowView.addView(et);
                 }
             }
         }
 
         crosswordCreated = true;
+    }
+
+    private String findDownDefinitionKey(String currHint, String nextHint, List<List<String>> grid,
+                                         int i, int j, Set<String> keys) {
+        String wordPart = currHint + nextHint;
+        Set<String> found = new HashSet<String>();
+
+        for (String k : keys) {
+            if (k.startsWith(wordPart))
+                found.add(k);
+        }
+
+        if (found.size() == 1)
+            return found.iterator().next();
+        else if (found.isEmpty() || i >= grid.size())
+            return null;
+        else
+            return findDownDefinitionKey(wordPart, grid.get(i + 1).get(j), grid, i + 1, j, found);
+    }
+
+    private String findAcrossDefinitionKey(String currHint, String nextHint,
+                                           List<String> row, int j, Set<String> keys) {
+        String wordPart = currHint + nextHint;
+        Set<String> found = new HashSet<String>();
+
+        for (String k : keys) {
+            if (k.startsWith(wordPart))
+                found.add(k);
+        }
+
+        if (found.size() == 1)
+            return found.iterator().next();
+        else if (found.isEmpty() || j >= row.size())
+            return null;
+        else
+            return findAcrossDefinitionKey(wordPart, row.get(j + 1), row, j + 1, found);
     }
 
     private void loopOverCrossword(CrosswordLoopFunction<EditText, Integer, Integer> func) {
@@ -361,10 +473,27 @@ public class CrosswordActivity extends SherlockActivity
         loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
             @Override
             public void execute(EditText et, Integer row, Integer col) {
-                if (!et.getText().toString().equals(et.getHint()))
-                    et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid);
-                else
-                    et.setBackgroundResource(R.drawable.edit_text_holo_light);
+                XTag tag = (XTag) et.getTag();
+
+                if (!et.getText().toString().equals(tag.answer)) {
+                    if (tag.type == XTag.ACROSS_DOWN)
+                        et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_across_down);
+                    else if (tag.type == XTag.ACROSS)
+                        et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_across);
+                    else if (tag.type == XTag.DOWN)
+                        et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_down);
+                    else
+                        et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid);
+                } else {
+                    if (tag.type == XTag.ACROSS_DOWN)
+                        et.setBackgroundResource(R.drawable.edit_text_holo_light_across_down);
+                    else if (tag.type == XTag.ACROSS)
+                        et.setBackgroundResource(R.drawable.edit_text_holo_light_across);
+                    else if (tag.type == XTag.DOWN)
+                        et.setBackgroundResource(R.drawable.edit_text_holo_light_down);
+                    else
+                        et.setBackgroundResource(R.drawable.edit_text_holo_light);
+                }
             }
         });
 
