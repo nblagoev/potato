@@ -11,6 +11,12 @@
             android:title="@string/pref_title_auto_resume"
             android:defaultValue="true"/>
 
+        <CheckBoxPreference
+            android:key="auto_clue"
+            android:summary="@string/pref_summary_auto_clue"
+            android:title="@string/pref_title_auto_clue"
+            android:defaultValue="false"/>
+
     </PreferenceCategory>
 
     <PreferenceCategory

@@ -14,6 +14,7 @@ import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnFocusChangeListener;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.EditText;
@@ -21,6 +22,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Toast;
 
+import com.cocosw.undobar.UndoBarStyle;
 import com.nikoblag.android.potato.util.Const;
 import com.nikoblag.android.potato.util.CrosswordLoopFunction;
 import com.nikoblag.android.potato.util.Util;
@@ -83,21 +85,7 @@ public class CrosswordActivity extends SherlockActivity
                 startActivity(si);
                 return true;
             case R.id.hint:
-                EditText box = (EditText) getCurrentFocus();
-                if (box != null) {
-                    XTag tag = (XTag) box.getTag();
-                    String msg = "";
-
-                    if (!Util.empty(tag.definitionA))
-                        msg += "Across: " + tag.definitionA;
-
-                    if (!Util.empty(tag.definitionD))
-                        msg += (msg.length() > 0 ? "\n" : "") + "Down: " + tag.definitionD;
-
-                    Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(this, "For hints, select a text box", Toast.LENGTH_SHORT).show();
-                }
+                showHint(getCurrentFocus());
                 return true;
             case R.id.github:
                 Uri uriUrl = Uri.parse("http://github.com/nikoblag/potato");
@@ -392,7 +380,16 @@ public class CrosswordActivity extends SherlockActivity
                     }
 
                     et.setTag(new XTag(type, hint, defA, defD));
+
                     rowView.addView(et);
+                    et.setOnFocusChangeListener(new OnFocusChangeListener() {
+                        @Override
+                        public void onFocusChange(View v, boolean hasFocus) {
+                            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(CrosswordActivity.this);
+                            if (sp.getBoolean("auto_clue", false) && hasFocus)
+                                showHint(v);
+                        }
+                    });
                 }
             }
         }
@@ -434,6 +431,28 @@ public class CrosswordActivity extends SherlockActivity
             return null;
         else
             return findAcrossDefinitionKey(wordPart, row.get(j + 1), row, j + 1, found);
+    }
+
+    private void showHint(View focusedView) {
+        EditText box = (EditText) focusedView;
+        if (box != null) {
+            XTag tag = (XTag) box.getTag();
+            String msg = "";
+
+            if (!Util.empty(tag.definitionA))
+                msg += "> " + tag.definitionA;
+
+            if (!Util.empty(tag.definitionD))
+                msg += (msg.length() > 0 ? "\n\n" : "") + "v " + tag.definitionD;
+
+            Bundle b = new Bundle();
+            b.putInt(Const.UNDOBAR_MESSAGESTYLE, Const.UNDOBAR_HINT);
+            UndoBarController.show(this, msg, this, b, false,
+                    new UndoBarStyle(R.drawable.ic_action_accept_light, R.string.BLANK, -1));
+
+        } else {
+            Toast.makeText(this, "For hints, select a text box", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void loopOverCrossword(CrosswordLoopFunction<EditText, Integer, Integer> func) {
