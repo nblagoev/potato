@@ -494,7 +494,7 @@ public class CrosswordActivity extends SherlockActivity
             public void execute(EditText et, Integer row, Integer col) {
                 XTag tag = (XTag) et.getTag();
 
-                if (!et.getText().toString().equals(tag.answer)) {
+                if (!et.getText().toString().toLowerCase().equals(tag.answer.toLowerCase())) {
                     if (tag.type == XTag.ACROSS_DOWN)
                         et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_across_down);
                     else if (tag.type == XTag.ACROSS)

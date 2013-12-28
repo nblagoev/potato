@@ -3,8 +3,7 @@
 <EditText xmlns:android="http://schemas.android.com/apk/res/android"
           android:layout_width="38dp"
           android:layout_height="match_parent"
-          android:inputType="text"
           android:editable="true"
           android:maxLength="1"
           android:background="@drawable/edit_text_holo_light"
-          />
+          android:inputType="text|textCapCharacters|textNoSuggestions" />
