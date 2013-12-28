@@ -172,10 +172,16 @@ public final class Util {
                     continue;
 
                 String name = parser.getName();
-                if (name.equals("row"))
-                    rows.add(readRow(parser));
-                else
+                if (name.equals("row")) {
+                    List<String> row = readRow(parser);
+                    for (int i = row.size(); --i >= 0 && row.get(i).isEmpty();) {
+                        row.remove(i);
+                    }
+
+                    rows.add(row);
+                } else {
                     skip(parser);
+                }
             }
             return rows;
         }
