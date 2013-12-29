@@ -57,6 +57,10 @@ public class CrosswordActivity extends SherlockActivity
     private boolean crosswordCreated = false;
     private int loadedCID = -1;
     private PullToRefreshLayout mPullToRefreshLayout;
+    private int penalties = 0;
+    private int boxCount = 0;
+    private float score = 0;
+    private boolean completed = false;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -93,7 +97,7 @@ public class CrosswordActivity extends SherlockActivity
                 startActivity(launchBrowser);
                 return true;
             case R.id.validate:
-                validateCrosswordGrid(true);
+                validateCrosswordGrid();
                 return true;
             case R.id.clear:
                 saveState();
@@ -145,7 +149,7 @@ public class CrosswordActivity extends SherlockActivity
     public void onRefreshStarted(View view) {
         // Note: Android views can't be manipulated outside the thread
         // that was used to create them
-        validateCrosswordGrid(false);
+        validateCrosswordGrid();
 
         // Leaving this refresh simulation, because it fixes the UI glitch
         // caused by the fast execution of the above code
@@ -286,13 +290,20 @@ public class CrosswordActivity extends SherlockActivity
         if (request == Const.ACTIVITY_REQUEST_RESUME) {
             loadedCID = prefs.getInt("cid", -1);
 
-            String cfn = loadedCID + ".jcw";
-            File file = new File(getFilesDir().getPath() + "/" + cfn);
+            SharedPreferences scores = getSharedPreferences("scores", MODE_PRIVATE);
 
-            try {
-                createCrossword(XTable.generate(new FileInputStream(file)));
-                resumeQueued = true;
-            } catch (Exception ignored) {
+            if (scores.getFloat("cid" + loadedCID, -1) == -1) {
+                String cfn = loadedCID + ".jcw";
+                File file = new File(getFilesDir().getPath() + "/" + cfn);
+
+                try {
+                    createCrossword(XTable.generate(new FileInputStream(file)));
+                    resumeQueued = true;
+                } catch (Exception ignored) {
+                    prefs.edit().clear().commit();
+                    getLoaderManager().initLoader(0, null, this);
+                }
+            } else {
                 prefs.edit().clear().commit();
                 getLoaderManager().initLoader(0, null, this);
             }
@@ -305,6 +316,11 @@ public class CrosswordActivity extends SherlockActivity
     private void createCrossword(XTable xtable) {
         if (crosswordCreated)
             return;
+
+        boxCount = 0;
+        penalties = 0;
+        score = 0;
+        completed = false;
 
         LinearLayout grid = (LinearLayout) findViewById(R.id.crosswordGrid);
         LayoutInflater inflater = LayoutInflater.from(this);
@@ -320,6 +336,7 @@ public class CrosswordActivity extends SherlockActivity
                 if (Util.empty(hint)) {
                     rowView.addView(inflater.inflate(R.layout.simple_space_box, rowView, false));
                 } else {
+                    boxCount++;
                     String defA = null;
                     String defD = null;
                     EditText et = (EditText) inflater.inflate(R.layout.simple_edit_box, rowView, false);
@@ -488,13 +505,17 @@ public class CrosswordActivity extends SherlockActivity
         });
     }
 
-    private void validateCrosswordGrid(boolean announce) {
+    private void validateCrosswordGrid() {
+        int penaltiesBefore = penalties;
+
         loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
             @Override
             public void execute(EditText et, Integer row, Integer col) {
                 XTag tag = (XTag) et.getTag();
 
                 if (!et.getText().toString().toLowerCase().equals(tag.answer.toLowerCase())) {
+                    penalties++;
+
                     if (tag.type == XTag.ACROSS_DOWN)
                         et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_across_down);
                     else if (tag.type == XTag.ACROSS)
@@ -516,26 +537,39 @@ public class CrosswordActivity extends SherlockActivity
             }
         });
 
-        if (announce)
-            Toast.makeText(this, "Validation complete", Toast.LENGTH_SHORT).show();
+        if (penaltiesBefore == penalties)
+            completed = true;
+
+        score = ((float)(boxCount - penalties)) / boxCount * 100;
+        String ss = String.format("%.2f", ((score < 0) ? 0 : score));
+        Toast.makeText(this, "Validation complete\nScore: " + ss, Toast.LENGTH_SHORT).show();
     }
 
     private void saveState() {
-        final SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
-        final SharedPreferences.Editor editor = prefs.edit().clear();
-        editor.putInt("cid", loadedCID);
+        if (!completed) {
+            final SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
+            final SharedPreferences.Editor editor = prefs.edit().clear();
+            editor.putInt("cid", loadedCID);
+            editor.putFloat("score_cid" + loadedCID, score);
+            editor.putInt("penalties_cid" + loadedCID, penalties);
 
-        loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
-            @Override
-            public void execute(EditText et, Integer row, Integer col) {
-                String val = et.getText().toString();
-                // save the non-empty values only, no need to flood the prefs
-                if (!val.isEmpty())
-                    editor.putString("box_" + row + "_" + col, val);
-            }
-        });
+            loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
+                @Override
+                public void execute(EditText et, Integer row, Integer col) {
+                    String val = et.getText().toString();
+                    // save the non-empty values only, no need to flood the prefs
+                    if (!val.isEmpty())
+                        editor.putString("box_" + row + "_" + col, val);
+                }
+            });
 
-        editor.commit();
+            editor.commit();
+        } else {
+            final SharedPreferences prefs = getSharedPreferences("scores", MODE_PRIVATE);
+            final SharedPreferences.Editor editor = prefs.edit().clear();
+            editor.putFloat("cid" + loadedCID, score);
+            editor.commit();
+        }
     }
 
     private void executeResume() {
@@ -543,6 +577,10 @@ public class CrosswordActivity extends SherlockActivity
             return;
 
         final SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
+
+        score = prefs.getFloat("score_cid" + loadedCID, 0);
+        penalties = prefs.getInt("penalties_cid" + loadedCID, 0);
+
         loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
             @Override
             public void execute(EditText et, Integer row, Integer col) {
