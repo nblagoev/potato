@@ -448,7 +448,7 @@ public class CrosswordActivity extends SherlockActivity
             Bundle b = new Bundle();
             b.putInt(Const.UNDOBAR_MESSAGESTYLE, Const.UNDOBAR_HINT);
             UndoBarController.show(this, msg, this, b, false,
-                    new UndoBarStyle(R.drawable.ic_action_accept_light, R.string.BLANK, -1));
+                    new UndoBarStyle(R.drawable.ic_action_cancel, R.string.BLANK, -1));
 
         } else {
             Toast.makeText(this, "For hints, select a text box", Toast.LENGTH_SHORT).show();

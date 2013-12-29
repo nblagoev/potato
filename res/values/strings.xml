@@ -36,7 +36,7 @@
     <string name="pref_title_osl_undobar">UndoBar</string>
     <string name="pref_title_osl_actionbarsherlock">ActionBarSherlock</string>
     <string name="pref_summary_actionbarsherlock">by Jake Wharton \nApache License, Version 2.0</string>
-    <string name="pref_summary_auto_resume">Automatically resumes the last unsolved crossword on start</string>
+    <string name="pref_summary_auto_resume">Automatically resume the last unsolved crossword on start</string>
     <string name="pref_title_auto_resume">Resume on start</string>
     <string name="pref_customization_title">Customization</string>
     <string name="pref_title_cache_info">Cache</string>
