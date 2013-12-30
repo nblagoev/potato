@@ -47,5 +47,7 @@
     <string name="BLANK"/>
     <string name="pref_title_auto_clue">Automatic clues</string>
     <string name="pref_summary_auto_clue">Show the clue bar when a word box is selected</string>
+    <string name="pref_title_dropbox_sync">Dropbox</string>
+    <string name="pref_sync_title">Sync</string>
 
 </resources>

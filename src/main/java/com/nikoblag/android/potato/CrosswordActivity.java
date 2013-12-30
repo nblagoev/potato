@@ -23,6 +23,7 @@ import android.widget.ScrollView;
 import android.widget.Toast;
 
 import com.cocosw.undobar.UndoBarStyle;
+import com.dropbox.sync.android.DbxAccountManager;
 import com.nikoblag.android.potato.util.Const;
 import com.nikoblag.android.potato.util.CrosswordLoopFunction;
 import com.nikoblag.android.potato.util.Util;
@@ -57,6 +58,7 @@ public class CrosswordActivity extends SherlockActivity
     private boolean crosswordCreated = false;
     private int loadedCID = -1;
     private PullToRefreshLayout mPullToRefreshLayout;
+    private DbxAccountManager mAccountManager;
     private int penalties = 0;
     private int boxCount = 0;
     private float score = 0;
@@ -117,6 +119,9 @@ public class CrosswordActivity extends SherlockActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_crossword);
+
+        mAccountManager = DbxAccountManager.getInstance(getApplicationContext(),
+                Const.DROPBOX_API_KEY, Const.DROPBOX_APP_KEY);
 
         findViewById(R.id.crosswordGrid)
                 .getViewTreeObserver()

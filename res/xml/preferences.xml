@@ -20,6 +20,17 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        android:title="@string/pref_sync_title"
+        android:key="pref_key_sync_settings">
+
+        <SwitchPreference
+            android:key="dropbox_sync"
+            android:title="@string/pref_title_dropbox_sync"
+            android:icon="@drawable/dropbox_glyph_blue"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
         android:title="@string/pref_storage_title"
         android:key="pref_key_storage_settings">
 
