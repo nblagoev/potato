@@ -24,6 +24,11 @@ import android.widget.Toast;
 
 import com.cocosw.undobar.UndoBarStyle;
 import com.dropbox.sync.android.DbxAccountManager;
+import com.dropbox.sync.android.DbxDatastore;
+import com.dropbox.sync.android.DbxException;
+import com.dropbox.sync.android.DbxRecord;
+import com.dropbox.sync.android.DbxTable;
+import com.dropbox.sync.android.DbxTable.ResolutionRule;
 import com.nikoblag.android.potato.util.Const;
 import com.nikoblag.android.potato.util.CrosswordLoopFunction;
 import com.nikoblag.android.potato.util.Util;
@@ -45,6 +50,7 @@ import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.ScrollYDelegate;
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.UnknownHostException;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -58,7 +64,6 @@ public class CrosswordActivity extends SherlockActivity
     private boolean crosswordCreated = false;
     private int loadedCID = -1;
     private PullToRefreshLayout mPullToRefreshLayout;
-    private DbxAccountManager mAccountManager;
     private int penalties = 0;
     private int boxCount = 0;
     private float score = 0;
@@ -119,9 +124,6 @@ public class CrosswordActivity extends SherlockActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_crossword);
-
-        mAccountManager = DbxAccountManager.getInstance(getApplicationContext(),
-                Const.DROPBOX_API_KEY, Const.DROPBOX_APP_KEY);
 
         findViewById(R.id.crosswordGrid)
                 .getViewTreeObserver()
@@ -198,7 +200,7 @@ public class CrosswordActivity extends SherlockActivity
                     max = Integer.parseInt(props.getProperty("max_id"));
                     // should we set the loadedCID after the crossword was
                     // successfully rendered?
-                    loadedCID = Util.randomCrosswordId(max);
+                    loadedCID = Util.randomCrosswordId(getApplicationContext(), max);
 
                     String cfn = loadedCID + ".jcw";
                     File file = new File(getFilesDir().getPath() + "/" + cfn);
@@ -218,7 +220,7 @@ public class CrosswordActivity extends SherlockActivity
                 try {
                     props.load(Util.downloadAndOpenFile(CrosswordActivity.this, Const.POTATO_METAFILE_URL, ".meta"));
                     max = Integer.parseInt(props.getProperty("max_id"));
-                    loadedCID = Util.randomCrosswordId(max);
+                    loadedCID = Util.randomCrosswordId(getApplicationContext(), max);
 
                     String cfn = loadedCID + ".jcw";
                     File file = new File(getFilesDir().getPath() + "/" + cfn);
@@ -295,9 +297,27 @@ public class CrosswordActivity extends SherlockActivity
         if (request == Const.ACTIVITY_REQUEST_RESUME) {
             loadedCID = prefs.getInt("cid", -1);
 
-            SharedPreferences scores = getSharedPreferences("scores", MODE_PRIVATE);
+            DbxAccountManager accMngr = DbxAccountManager.getInstance(getApplicationContext(),
+                    Const.DROPBOX_API_KEY, Const.DROPBOX_APP_KEY);
 
-            if (scores.getFloat("cid" + loadedCID, -1) == -1) {
+            boolean isCompleted = false;
+
+            if (accMngr.hasLinkedAccount()) {
+                try {
+                    DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
+                    DbxTable table = dbxDatastore.getTable("scores");
+
+                    isCompleted = table.get("cid-" + loadedCID) != null;
+                    dbxDatastore.close();
+                } catch (DbxException e) {
+                    Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                SharedPreferences scores = getSharedPreferences("scores", MODE_PRIVATE);
+                isCompleted = scores.contains("cid" + loadedCID);
+            }
+
+            if (!isCompleted) {
                 String cfn = loadedCID + ".jcw";
                 File file = new File(getFilesDir().getPath() + "/" + cfn);
 
@@ -570,10 +590,32 @@ public class CrosswordActivity extends SherlockActivity
 
             editor.commit();
         } else {
-            final SharedPreferences prefs = getSharedPreferences("scores", MODE_PRIVATE);
-            final SharedPreferences.Editor editor = prefs.edit().clear();
-            editor.putFloat("cid" + loadedCID, score);
-            editor.commit();
+            DbxAccountManager accMngr = DbxAccountManager.getInstance(getApplicationContext(),
+                    Const.DROPBOX_API_KEY, Const.DROPBOX_APP_KEY);
+
+            if (accMngr.hasLinkedAccount()) {
+                try {
+                    DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
+                    DbxTable table = dbxDatastore.getTable("scores");
+
+                    table.setResolutionRule("score", ResolutionRule.MAX);
+                    DbxRecord record = table.getOrInsert("cid-" + loadedCID);
+
+                    if (!record.hasField("completed") || !record.getBoolean("completed")) {
+                        record.set("score", score).set("completed", true).set("date", new Date());
+                        dbxDatastore.sync();
+                    }
+
+                    dbxDatastore.close();
+                } catch (DbxException e) {
+                    Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                final SharedPreferences prefs = getSharedPreferences("scores", MODE_PRIVATE);
+                final SharedPreferences.Editor editor = prefs.edit().clear();
+                editor.putFloat("cid" + loadedCID, score);
+                editor.commit();
+            }
         }
     }
 

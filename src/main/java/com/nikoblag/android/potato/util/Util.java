@@ -1,8 +1,14 @@
 package com.nikoblag.android.potato.util;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.widget.Toast;
+import com.dropbox.sync.android.DbxAccountManager;
+import com.dropbox.sync.android.DbxDatastore;
+import com.dropbox.sync.android.DbxException;
+import com.dropbox.sync.android.DbxTable;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -90,8 +96,34 @@ public final class Util {
         return ni != null && ni.isConnected();
     }
 
-    public static int randomCrosswordId(int max) {
-        return 1 + (int) (Math.random() * max);
+    public static int randomCrosswordId(Context context, int max) {
+        int id = 1 + (int) (Math.random() * max);
+
+        DbxAccountManager accMngr = DbxAccountManager.getInstance(context.getApplicationContext(),
+                Const.DROPBOX_API_KEY, Const.DROPBOX_APP_KEY);
+
+        if (accMngr.hasLinkedAccount()) {
+            try {
+                DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
+                DbxTable table = dbxDatastore.getTable("scores");
+
+                while (table.get("cid-" + id) != null){
+                    id = 1 + (int) (Math.random() * max);
+                }
+
+                dbxDatastore.close();
+            } catch (DbxException e) {
+                Toast.makeText(context.getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            SharedPreferences prefs = context.getSharedPreferences("scores", Context.MODE_PRIVATE);
+
+            while (prefs.contains("cid" + id)) {
+                id = 1 + (int) (Math.random() * max);
+            }
+        }
+
+        return id;
     }
 
     public static String sizeToString(long size) {
