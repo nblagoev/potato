@@ -26,8 +26,10 @@ import com.cocosw.undobar.UndoBarStyle;
 import com.dropbox.sync.android.DbxAccountManager;
 import com.dropbox.sync.android.DbxDatastore;
 import com.dropbox.sync.android.DbxException;
+import com.dropbox.sync.android.DbxFields;
 import com.dropbox.sync.android.DbxRecord;
 import com.dropbox.sync.android.DbxTable;
+import com.dropbox.sync.android.DbxTable.QueryResult;
 import com.dropbox.sync.android.DbxTable.ResolutionRule;
 import com.nikoblag.android.potato.util.Const;
 import com.nikoblag.android.potato.util.CrosswordLoopFunction;
@@ -295,8 +297,6 @@ public class CrosswordActivity extends SherlockActivity
         SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
 
         if (request == Const.ACTIVITY_REQUEST_RESUME) {
-            loadedCID = prefs.getInt("cid", -1);
-
             DbxAccountManager accMngr = DbxAccountManager.getInstance(getApplicationContext(),
                     Const.DROPBOX_API_KEY, Const.DROPBOX_APP_KEY);
 
@@ -306,13 +306,19 @@ public class CrosswordActivity extends SherlockActivity
                 try {
                     DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
                     DbxTable table = dbxDatastore.getTable("scores");
+                    DbxRecord last = dbxDatastore.getTable("state").getOrInsert("last");
+                    if (last != null && last.hasField("cid"))
+                        loadedCID = (int) last.getLong("cid");
 
-                    isCompleted = table.get("cid-" + loadedCID) != null;
+                    DbxRecord scoreRecord = table.get("cid-" + loadedCID);
+
+                    isCompleted =  (scoreRecord != null && scoreRecord.getBoolean("completed"));
                     dbxDatastore.close();
                 } catch (DbxException e) {
                     Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             } else {
+                loadedCID = prefs.getInt("cid", -1);
                 SharedPreferences scores = getSharedPreferences("scores", MODE_PRIVATE);
                 isCompleted = scores.contains("cid" + loadedCID);
             }
@@ -571,45 +577,80 @@ public class CrosswordActivity extends SherlockActivity
     }
 
     private void saveState() {
-        if (!completed) {
-            final SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
-            final SharedPreferences.Editor editor = prefs.edit().clear();
-            editor.putInt("cid", loadedCID);
-            editor.putFloat("score_cid" + loadedCID, score);
-            editor.putInt("penalties_cid" + loadedCID, penalties);
+        DbxAccountManager accMngr = DbxAccountManager.getInstance(getApplicationContext(),
+                Const.DROPBOX_API_KEY, Const.DROPBOX_APP_KEY);
 
-            loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
-                @Override
-                public void execute(EditText et, Integer row, Integer col) {
-                    String val = et.getText().toString();
-                    // save the non-empty values only, no need to flood the prefs
-                    if (!val.isEmpty())
-                        editor.putString("box_" + row + "_" + col, val);
-                }
-            });
+        if (accMngr.hasLinkedAccount()) {
+            try {
+                DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
+                DbxTable scoreTable = dbxDatastore.getTable("scores");
 
-            editor.commit();
-        } else {
-            DbxAccountManager accMngr = DbxAccountManager.getInstance(getApplicationContext(),
-                    Const.DROPBOX_API_KEY, Const.DROPBOX_APP_KEY);
+                scoreTable.setResolutionRule("score", ResolutionRule.MAX);
+                DbxRecord scoreRecord = scoreTable.getOrInsert("cid-" + loadedCID);
 
-            if (accMngr.hasLinkedAccount()) {
-                try {
-                    DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
-                    DbxTable table = dbxDatastore.getTable("scores");
+                if (!scoreRecord.hasField("completed") || !scoreRecord.getBoolean("completed")) {
+                    scoreRecord.set("score", score).set("completed", completed)
+                               .set("date", new Date()).set("penalties", penalties);
 
-                    table.setResolutionRule("score", ResolutionRule.MAX);
-                    DbxRecord record = table.getOrInsert("cid-" + loadedCID);
+                    if (!completed) {
+                        DbxFields q = new DbxFields().set("type", "box").set("active", true);
+                        final DbxTable stateTable = dbxDatastore.getTable("state");
 
-                    if (!record.hasField("completed") || !record.getBoolean("completed")) {
-                        record.set("score", score).set("completed", true).set("date", new Date());
-                        dbxDatastore.sync();
+                        for (DbxRecord stateRecord : stateTable.query(q)) {
+                            stateRecord.set("active", false);
+                        }
+
+                        loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
+                            @Override
+                            public void execute(EditText et, Integer row, Integer col) {
+                                String val = et.getText().toString();
+                                // save the non-empty values only, no need to flood the prefs
+                                if (!val.isEmpty()) {
+                                    try {
+                                        DbxFields query = new DbxFields().set("type", "box").set("row", row).set("column", col);
+                                        DbxFields fields = new DbxFields().set("value", val).set("active", true);
+                                        QueryResult r = stateTable.query(query);
+
+                                        if (r.count() < 1)
+                                            stateTable.insert(query).setAll(fields);
+                                        else
+                                            r.iterator().next().setAll(fields);
+                                    } catch (DbxException e) {
+                                        Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            }
+                        });
+
+                        stateTable.getOrInsert("last").set("cid", loadedCID);
                     }
 
-                    dbxDatastore.close();
-                } catch (DbxException e) {
-                    Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    dbxDatastore.sync();
                 }
+
+                dbxDatastore.close();
+            } catch (DbxException e) {
+                Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            if (!completed) {
+                final SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
+                final SharedPreferences.Editor editor = prefs.edit().clear();
+                editor.putInt("cid", loadedCID);
+                editor.putFloat("score_cid" + loadedCID, score);
+                editor.putInt("penalties_cid" + loadedCID, penalties);
+
+                loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
+                    @Override
+                    public void execute(EditText et, Integer row, Integer col) {
+                        String val = et.getText().toString();
+                        // save the non-empty values only, no need to flood the prefs
+                        if (!val.isEmpty())
+                            editor.putString("box_" + row + "_" + col, val);
+                    }
+                });
+
+                editor.commit();
             } else {
                 final SharedPreferences prefs = getSharedPreferences("scores", MODE_PRIVATE);
                 final SharedPreferences.Editor editor = prefs.edit().clear();
@@ -623,19 +664,64 @@ public class CrosswordActivity extends SherlockActivity
         if (!resumeQueued)
             return;
 
-        final SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
+        DbxAccountManager accMngr = DbxAccountManager.getInstance(getApplicationContext(),
+                Const.DROPBOX_API_KEY, Const.DROPBOX_APP_KEY);
 
-        score = prefs.getFloat("score_cid" + loadedCID, 0);
-        penalties = prefs.getInt("penalties_cid" + loadedCID, 0);
+        if (accMngr.hasLinkedAccount()) {
+            try {
+                DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
+                DbxTable scoreTable = dbxDatastore.getTable("scores");
 
-        loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
-            @Override
-            public void execute(EditText et, Integer row, Integer col) {
-                String val = prefs.getString("box_" + row + "_" + col, "");
-                if (!val.isEmpty())
-                    et.setText(val);
+                DbxRecord scoreRecord = scoreTable.get("cid-" + loadedCID);
+
+                if (scoreRecord != null && !scoreRecord.getBoolean("completed")) {
+                    score = (float) scoreRecord.getDouble("score");
+                    penalties = (int) scoreRecord.getLong("penalties");
+
+                    final DbxFields q = new DbxFields().set("type", "box").set("active", true);
+                    final DbxTable stateTable = dbxDatastore.getTable("state");
+
+                    loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
+                        @Override
+                        public void execute(EditText et, Integer row, Integer col) {
+                            try {
+                                q.set("row", row).set("column", col);
+                                QueryResult r = stateTable.query(q);
+
+                                if (r.count() > 0) {
+                                    String val = r.iterator().next().getString("value");
+
+                                    if (val != null && !val.isEmpty())
+                                        et.setText(val);
+                                }
+                            } catch (DbxException e) {
+                                Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+
+                    dbxDatastore.sync();
+                }
+
+                dbxDatastore.close();
+            } catch (DbxException e) {
+                Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
-        });
+        } else {
+            final SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
+
+            score = prefs.getFloat("score_cid" + loadedCID, 0);
+            penalties = prefs.getInt("penalties_cid" + loadedCID, 0);
+
+            loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
+                @Override
+                public void execute(EditText et, Integer row, Integer col) {
+                    String val = prefs.getString("box_" + row + "_" + col, "");
+                    if (!val.isEmpty())
+                        et.setText(val);
+                }
+            });
+        }
 
         resumeQueued = false;
     }

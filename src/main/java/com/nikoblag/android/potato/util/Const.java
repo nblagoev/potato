@@ -18,6 +18,6 @@ public class Const {
     public static final String POTATO_DROPBOX_URL = "https://dl.dropboxusercontent.com/u/24621971/Potato/";
     public static final String POTATO_METAFILE_URL = POTATO_DROPBOX_URL + ".meta";
 
-    public static final String DROPBOX_API_KEY = "y4j57q3bjyokony";
-    public static final String DROPBOX_APP_KEY = "d2qnxffxjyy4cln";
+    public static final String DROPBOX_API_KEY = "1rrbgoiz6ezz4br";
+    public static final String DROPBOX_APP_KEY = "5oqmkgb6jop8eph";
 }

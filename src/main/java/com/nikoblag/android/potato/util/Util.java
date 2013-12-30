@@ -8,6 +8,7 @@ import android.widget.Toast;
 import com.dropbox.sync.android.DbxAccountManager;
 import com.dropbox.sync.android.DbxDatastore;
 import com.dropbox.sync.android.DbxException;
+import com.dropbox.sync.android.DbxRecord;
 import com.dropbox.sync.android.DbxTable;
 
 import java.io.FileInputStream;
@@ -106,8 +107,9 @@ public final class Util {
             try {
                 DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
                 DbxTable table = dbxDatastore.getTable("scores");
+                DbxRecord scoreRecord = table.get("cid-" + id);
 
-                while (table.get("cid-" + id) != null){
+                while (scoreRecord != null && scoreRecord.getBoolean("completed")){
                     id = 1 + (int) (Math.random() * max);
                 }
 
