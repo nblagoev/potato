@@ -568,12 +568,14 @@ public class CrosswordActivity extends SherlockActivity
             }
         });
 
-        if (penaltiesBefore == penalties)
-            completed = true;
-
         score = ((float)(boxCount - penalties)) / boxCount * 100;
         String ss = String.format("%.2f", ((score < 0) ? 0 : score));
         Toast.makeText(this, "Validation complete\nScore: " + ss, Toast.LENGTH_SHORT).show();
+
+        if (penaltiesBefore == penalties) {
+            completed = true;
+            saveState();
+        }
     }
 
     private void saveState() {
