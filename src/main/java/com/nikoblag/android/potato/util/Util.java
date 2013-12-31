@@ -107,9 +107,10 @@ public final class Util {
             try {
                 DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
                 DbxTable table = dbxDatastore.getTable("scores");
-                DbxRecord scoreRecord = table.get("cid-" + id);
 
-                while (scoreRecord != null && scoreRecord.getBoolean("completed")){
+                for (DbxRecord scoreRecord = table.get("cid-" + id);
+                     scoreRecord != null && scoreRecord.getBoolean("completed");
+                     scoreRecord = table.get("cid-" + id)) {
                     id = 1 + (int) (Math.random() * max);
                 }
 
