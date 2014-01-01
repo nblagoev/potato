@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnFocusChangeListener;
@@ -70,6 +72,7 @@ public class CrosswordActivity extends SherlockActivity
     private int boxCount = 0;
     private float score = 0;
     private boolean completed = false;
+    private View lastFocusedBox;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -370,7 +373,7 @@ public class CrosswordActivity extends SherlockActivity
                     boxCount++;
                     String defA = null;
                     String defD = null;
-                    EditText et = (EditText) inflater.inflate(R.layout.simple_edit_box, rowView, false);
+                    final EditText et = (EditText) inflater.inflate(R.layout.simple_edit_box, rowView, false);
                     et.setId(Util.getBoxId(i, j));
 
                     // now we have to find the definition for the word this box is part of
@@ -433,9 +436,44 @@ public class CrosswordActivity extends SherlockActivity
                     et.setOnFocusChangeListener(new OnFocusChangeListener() {
                         @Override
                         public void onFocusChange(View v, boolean hasFocus) {
-                            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(CrosswordActivity.this);
-                            if (sp.getBoolean("auto_clue", false) && hasFocus)
-                                showHint(v);
+                            if (hasFocus) {
+                                SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(CrosswordActivity.this);
+                                if (sp.getBoolean("auto_clue", false))
+                                    showHint(v);
+                            } else {
+                                lastFocusedBox = v;
+                            }
+                        }
+                    });
+
+                    final int m = i;
+                    final int n = j;
+                    final int M = gridLen;
+                    final int N = rowLen;
+
+                    et.addTextChangedListener(new TextWatcher() {
+                        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                        @Override public void afterTextChanged(Editable s) {}
+
+                        @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                            if (s.length() == 0)
+                                return;
+
+                            XTag tag = (XTag) et.getTag();
+
+                            try {
+                                if (!Util.empty(tag.definitionA) && Util.empty(tag.definitionD) && n < N) {
+                                    findViewById(Util.getBoxId(m, n + 1)).requestFocus();
+                                } else if (Util.empty(tag.definitionA) && !Util.empty(tag.definitionD) && m < M) {
+                                    findViewById(Util.getBoxId(m + 1, n)).requestFocus();
+                                } else {
+                                    XTag lastTag = (XTag) lastFocusedBox.getTag();
+                                    if (!Util.empty(lastTag.definitionA) && Util.empty(lastTag.definitionD) && n < N)
+                                        findViewById(Util.getBoxId(m, n + 1)).requestFocus();
+                                    else if (Util.empty(lastTag.definitionA) && !Util.empty(lastTag.definitionD) && m < M)
+                                        findViewById(Util.getBoxId(m + 1, n)).requestFocus();
+                                }
+                            } catch (Exception ignored) {}
                         }
                     });
                 }
