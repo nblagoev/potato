@@ -500,6 +500,11 @@ public class CrosswordActivity extends SherlockActivity
                     box = (XwBox) findViewById(Util.getBoxId(m, n + 1));
                 else if (Util.empty(lastTag.definitionA) && !Util.empty(lastTag.definitionD) && m < M)
                     box = (XwBox) findViewById(Util.getBoxId(m + 1, n));
+                // if nothing else works, check if the box is a start of a word, and go that direction
+                else if (tag.type == XTag.ACROSS && n < N)
+                    box = (XwBox) findViewById(Util.getBoxId(m, n + 1));
+                else if (tag.type == XTag.DOWN && m < M)
+                    box = (XwBox) findViewById(Util.getBoxId(m + 1, n));
             }
 
             if (box != null) {
