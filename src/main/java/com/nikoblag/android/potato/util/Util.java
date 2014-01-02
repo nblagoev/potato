@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.widget.Toast;
 import com.dropbox.sync.android.DbxAccountManager;
 import com.dropbox.sync.android.DbxDatastore;
@@ -141,5 +143,14 @@ public final class Util {
 
     public static boolean empty(String s) {
         return s == null || s.isEmpty();
+    }
+
+    public static void vibrate(Context context, int duration)
+    {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+        if (sp.getBoolean("vibrate_on", false)) {
+            Vibrator vibs = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+            vibs.vibrate(duration);
+        }
     }
 }

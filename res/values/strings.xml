@@ -49,5 +49,7 @@
     <string name="pref_summary_auto_clue">Show the clue bar when a word box is selected</string>
     <string name="pref_title_dropbox_sync">Dropbox</string>
     <string name="pref_sync_title">Sync</string>
+    <string name="pref_title_vibrate_on">Vibrate on error</string>
+    <string name="pref_summary_vibrate_on">Vibrate on validation if the crossword has incorrect answers</string>
 
 </resources>

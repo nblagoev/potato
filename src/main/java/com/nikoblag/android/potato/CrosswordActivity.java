@@ -624,6 +624,8 @@ public class CrosswordActivity extends SherlockActivity
         if (penaltiesBefore == penalties) {
             completed = true;
             saveState();
+        } else {
+            Util.vibrate(this, 200);
         }
     }
 
