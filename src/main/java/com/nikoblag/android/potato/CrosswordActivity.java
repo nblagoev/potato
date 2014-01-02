@@ -40,6 +40,7 @@ import com.cocosw.undobar.UndoBarController.UndoListener;
 import com.github.kevinsawicki.wishlist.ThrowableLoader;
 import com.nikoblag.android.potato.util.XTable;
 import com.nikoblag.android.potato.util.XTag;
+import com.nikoblag.android.potato.widget.XwBox;
 import uk.co.senab.actionbarpulltorefresh.extras.actionbarsherlock.PullToRefreshLayout;
 import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
 import uk.co.senab.actionbarpulltorefresh.library.Options;
@@ -368,8 +369,8 @@ public class CrosswordActivity extends SherlockActivity
                     boxCount++;
                     String defA = null;
                     String defD = null;
-                    final EditText et = (EditText) inflater.inflate(R.layout.simple_edit_box, rowView, false);
-                    et.setId(Util.getBoxId(i, j));
+                    final XwBox xb = (XwBox) inflater.inflate(R.layout.simple_edit_box, rowView, false);
+                    xb.setId(Util.getBoxId(i, j));
 
                     // now we have to find the definition for the word this box is part of
                     String prevHint;
@@ -415,20 +416,20 @@ public class CrosswordActivity extends SherlockActivity
                     int type = XTag.INNER;
 
                     if (Util.empty(prevHint) && Util.empty(aboveHint) && !Util.empty(belowHint) && !Util.empty(nextHint)) {
-                        et.setBackgroundResource(R.drawable.edit_text_holo_light_across_down);
+                        xb.setBackgroundResource(R.drawable.edit_text_holo_light_across_down);
                         type = XTag.ACROSS_DOWN;
                     } else if (Util.empty(prevHint) && Util.empty(belowHint) && !Util.empty(nextHint)) {
-                        et.setBackgroundResource(R.drawable.edit_text_holo_light_across);
+                        xb.setBackgroundResource(R.drawable.edit_text_holo_light_across);
                         type = XTag.ACROSS;
                     } else if (Util.empty(aboveHint) && !Util.empty(belowHint) && Util.empty(nextHint)) {
-                        et.setBackgroundResource(R.drawable.edit_text_holo_light_down);
+                        xb.setBackgroundResource(R.drawable.edit_text_holo_light_down);
                         type = XTag.DOWN;
                     }
 
-                    et.setTag(new XTag(type, hint, defA, defD));
+                    xb.setTag(new XTag(type, hint, defA, defD));
 
-                    rowView.addView(et);
-                    et.setOnFocusChangeListener(new OnFocusChangeListener() {
+                    rowView.addView(xb);
+                    xb.setOnFocusChangeListener(new OnFocusChangeListener() {
                         @Override
                         public void onFocusChange(View v, boolean hasFocus) {
                             if (hasFocus) {
@@ -446,27 +447,40 @@ public class CrosswordActivity extends SherlockActivity
                     final int M = gridLen;
                     final int N = rowLen;
 
-                    et.addTextChangedListener(new TextWatcher() {
-                        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                        @Override public void afterTextChanged(Editable s) {}
+                    xb.addTextChangedListener(new TextWatcher() {
+                        @Override
+                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                        }
 
-                        @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        @Override
+                        public void afterTextChanged(Editable s) {
+                        }
+
+                        @Override
+                        public void onTextChanged(CharSequence s, int start, int before, int count) {
                             if (s.length() == 0)
                                 return;
 
-                            focusNextCrosswordBox(et, n, N, m, M);
+                            focusNextCrosswordBox(xb, n, N, m, M);
                         }
                     });
 
-                    et.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                    xb.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                         @Override
                         public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                             if (actionId == EditorInfo.IME_ACTION_NEXT) {
-                                focusNextCrosswordBox(et, n, N, m, M);
+                                focusNextCrosswordBox(xb, n, N, m, M);
                                 return true;
                             }
 
                             return false;
+                        }
+                    });
+
+                    xb.addOnBackspaceListener(new XwBox.OnBackspaceListener() {
+                        @Override
+                        public void onBackspace(XwBox xwb) {
+                            focusPrevCrosswordBox(xwb, n, m);
                         }
                     });
                 }
@@ -475,7 +489,7 @@ public class CrosswordActivity extends SherlockActivity
 
         crosswordCreated = true;
     }
-    
+
     private void focusNextCrosswordBox(EditText et, int n, int N, int m, int M) {
         XTag tag = (XTag) et.getTag();
 
@@ -490,6 +504,24 @@ public class CrosswordActivity extends SherlockActivity
                     findViewById(Util.getBoxId(m, n + 1)).requestFocus();
                 else if (Util.empty(lastTag.definitionA) && !Util.empty(lastTag.definitionD) && m < M)
                     findViewById(Util.getBoxId(m + 1, n)).requestFocus();
+            }
+        } catch (Exception ignored) {}
+    }
+
+    private void focusPrevCrosswordBox(EditText et, int n, int m) {
+        XTag tag = (XTag) et.getTag();
+
+        try {
+            if (!Util.empty(tag.definitionA) && Util.empty(tag.definitionD) && n > 0) {
+                findViewById(Util.getBoxId(m, n - 1)).requestFocus();
+            } else if (Util.empty(tag.definitionA) && !Util.empty(tag.definitionD) && m > 0) {
+                findViewById(Util.getBoxId(m - 1, n)).requestFocus();
+            } else {
+                XTag lastTag = (XTag) lastFocusedBox.getTag();
+                if (!Util.empty(lastTag.definitionA) && Util.empty(lastTag.definitionD) && n > 0)
+                    findViewById(Util.getBoxId(m, n - 1)).requestFocus();
+                else if (Util.empty(lastTag.definitionA) && !Util.empty(lastTag.definitionD) && m > 0)
+                    findViewById(Util.getBoxId(m - 1, n)).requestFocus();
             }
         } catch (Exception ignored) {}
     }
