@@ -49,6 +49,8 @@ public class ClearCachePreference extends DialogPreference {
 
         if (files.length < 1)
             setEnabled(false);
+        else
+            setEnabled(true);
 
         return super.onCreateView(parent);
     }

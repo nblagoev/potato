@@ -40,12 +40,10 @@
         android:title="@string/pref_storage_title"
         android:key="pref_key_storage_settings">
 
-        <CheckBoxPreference
-            android:key="pref_key_offline_mode"
-            android:summary="@string/pref_summary_offline_mode"
-            android:title="@string/pref_title_offline_mode"
-            android:defaultValue="false"
-            android:enabled="false"/>
+        <com.nikoblag.android.potato.preferences.DownloadCrosswordsPreference
+            android:key="pref_key_download_crosswords"
+            android:summary="@string/pref_summary_download_crosswords"
+            android:title="@string/pref_title_download_crosswords"/>
 
         <com.nikoblag.android.potato.preferences.CacheInfoPreference
             android:key="pref_key_cache_info"
