@@ -581,6 +581,8 @@ public class CrosswordActivity extends SherlockActivity
             public void execute(EditText et, Integer row, Integer col) {
                 if (!et.getText().toString().isEmpty())
                     et.setText("");
+
+                setCrosswordBoxBackground(et, false);
             }
         });
     }
@@ -595,24 +597,9 @@ public class CrosswordActivity extends SherlockActivity
 
                 if (!et.getText().toString().toLowerCase().equals(tag.answer.toLowerCase())) {
                     penalties++;
-
-                    if (tag.type == XTag.ACROSS_DOWN)
-                        et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_across_down);
-                    else if (tag.type == XTag.ACROSS)
-                        et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_across);
-                    else if (tag.type == XTag.DOWN)
-                        et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_down);
-                    else
-                        et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid);
+                    setCrosswordBoxBackground(et, true);
                 } else {
-                    if (tag.type == XTag.ACROSS_DOWN)
-                        et.setBackgroundResource(R.drawable.edit_text_holo_light_across_down);
-                    else if (tag.type == XTag.ACROSS)
-                        et.setBackgroundResource(R.drawable.edit_text_holo_light_across);
-                    else if (tag.type == XTag.DOWN)
-                        et.setBackgroundResource(R.drawable.edit_text_holo_light_down);
-                    else
-                        et.setBackgroundResource(R.drawable.edit_text_holo_light);
+                    setCrosswordBoxBackground(et, false);
                 }
             }
         });
@@ -626,6 +613,30 @@ public class CrosswordActivity extends SherlockActivity
             saveState();
         } else {
             Util.vibrate(this, 200);
+        }
+    }
+
+    private void setCrosswordBoxBackground(EditText et, boolean invalid) {
+        XTag tag = (XTag) et.getTag();
+
+        if (invalid) {
+            if (tag.type == XTag.ACROSS_DOWN)
+                et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_across_down);
+            else if (tag.type == XTag.ACROSS)
+                et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_across);
+            else if (tag.type == XTag.DOWN)
+                et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_down);
+            else
+                et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid);
+        } else {
+            if (tag.type == XTag.ACROSS_DOWN)
+                et.setBackgroundResource(R.drawable.edit_text_holo_light_across_down);
+            else if (tag.type == XTag.ACROSS)
+                et.setBackgroundResource(R.drawable.edit_text_holo_light_across);
+            else if (tag.type == XTag.DOWN)
+                et.setBackgroundResource(R.drawable.edit_text_holo_light_down);
+            else
+                et.setBackgroundResource(R.drawable.edit_text_holo_light);
         }
     }
 
