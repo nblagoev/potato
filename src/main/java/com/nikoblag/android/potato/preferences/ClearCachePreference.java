@@ -1,6 +1,9 @@
 package com.nikoblag.android.potato.preferences;
 
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.os.AsyncTask;
+import android.os.PowerManager;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
 import android.view.View;
@@ -10,7 +13,10 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.FileFilter;
 
+
 public class ClearCachePreference extends DialogPreference {
+
+    private ProgressDialog progressDialog;
 
     public ClearCachePreference(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -21,20 +27,14 @@ public class ClearCachePreference extends DialogPreference {
         super.onDialogClosed(positiveResult);
 
         if (positiveResult) {
-            File[] files = getContext().getFilesDir().listFiles(new FileFilter() {
-                @Override
-                public boolean accept(File file) {
-                    return file.getName().endsWith("jcw");
-                }
-            });
+            progressDialog = new ProgressDialog(getContext());
+            progressDialog.setTitle(null);
+            progressDialog.setMessage("Clearing cache...");
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            progressDialog.setIndeterminate(true);
+            progressDialog.setCancelable(false);
 
-            for (File file : files) {
-                file.delete();
-            }
-
-            setEnabled(false);
-
-            Toast.makeText(getContext(), "Cache cleared", Toast.LENGTH_SHORT).show();
+            new ClearCacheTask(getContext()).execute();
         }
     }
 
@@ -53,5 +53,60 @@ public class ClearCachePreference extends DialogPreference {
             setEnabled(true);
 
         return super.onCreateView(parent);
+    }
+
+
+    private class ClearCacheTask extends AsyncTask<Void, Void, Void> {
+
+        private Context context;
+
+        public ClearCacheTask(Context context) {
+            this.context = context;
+        }
+
+        @Override
+        protected Void doInBackground(Void... nothing) {
+            // take CPU lock to prevent CPU from going off if the user
+            // presses the power button during clearing
+            PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+            PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                    getClass().getName());
+            wl.acquire();
+
+            File[] files = getContext().getFilesDir().listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File file) {
+                    return file.getName().endsWith("jcw");
+                }
+            });
+
+            for (File file : files) {
+                file.delete();
+            }
+
+            wl.release();
+
+            return null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog.show();
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            progressDialog.dismiss();
+            progressDialog = null;
+            setEnabled(false);
+            Toast.makeText(getContext(), "Cache cleared", Toast.LENGTH_SHORT).show();
+            notifyChanged();
+        }
+
+        //@Override
+        //protected void onCancelled() {
+        //    notifyChanged();
+        //}
     }
 }

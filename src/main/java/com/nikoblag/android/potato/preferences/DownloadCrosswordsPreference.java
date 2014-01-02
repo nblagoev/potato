@@ -109,7 +109,7 @@ public class DownloadCrosswordsPreference extends Preference {
 
                             // publishing the progress....
                             if (fileLength > 0)
-                                publishProgress((int) ((total * 100 / fileLength) * (i / max)), i, max);
+                                publishProgress((int) ((total * 100 / fileLength) * ((float) i / max)), i, max);
                             else
                                 publishProgress(i * 100 / max, i, max);
 
@@ -158,7 +158,7 @@ public class DownloadCrosswordsPreference extends Preference {
             if (result != null)
                 Toast.makeText(context, "Download error: " + result, Toast.LENGTH_LONG).show();
             else
-                Toast.makeText(context, "Completed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Download complete", Toast.LENGTH_SHORT).show();
 
             notifyChanged();
         }
