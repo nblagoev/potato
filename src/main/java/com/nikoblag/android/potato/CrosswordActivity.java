@@ -68,7 +68,7 @@ public class CrosswordActivity extends SherlockActivity
     private int boxCount = 0;
     private float score = 0;
     private boolean completed = false;
-    private View lastFocusedBox;
+    private XwBox lastFocusedBox;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -390,8 +390,8 @@ public class CrosswordActivity extends SherlockActivity
                         } // else, next is a space, ignore it; maybe there is a box above/below
                     } else {
                         // previous is a box, use its definition (Across)
-                        EditText box = (EditText) findViewById(Util.getBoxId(i, j - 1));
-                        XTag t = (XTag) box.getTag();
+                        XwBox box = (XwBox) findViewById(Util.getBoxId(i, j - 1));
+                        XTag t = box.getXTag();
                         defA = t.definitionA;
                     }
 
@@ -408,8 +408,8 @@ public class CrosswordActivity extends SherlockActivity
                         } // else, the one a below is space, ignore it
                     } else {
                         // above is a box, use it's definition (Down)
-                        EditText box = (EditText) findViewById(Util.getBoxId(i - 1, j));
-                        XTag t = (XTag) box.getTag();
+                        XwBox box = (XwBox) findViewById(Util.getBoxId(i - 1, j));
+                        XTag t = box.getXTag();
                         defD = t.definitionD;
                     }
 
@@ -437,7 +437,7 @@ public class CrosswordActivity extends SherlockActivity
                                 if (sp.getBoolean("auto_clue", false))
                                     showHint(v);
                             } else {
-                                lastFocusedBox = v;
+                                lastFocusedBox = (XwBox) v;
                             }
                         }
                     });
@@ -448,13 +448,8 @@ public class CrosswordActivity extends SherlockActivity
                     final int N = rowLen;
 
                     xb.addTextChangedListener(new TextWatcher() {
-                        @Override
-                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                        }
-
-                        @Override
-                        public void afterTextChanged(Editable s) {
-                        }
+                        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                        @Override public void afterTextChanged(Editable s) {}
 
                         @Override
                         public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -490,8 +485,8 @@ public class CrosswordActivity extends SherlockActivity
         crosswordCreated = true;
     }
 
-    private void focusNextCrosswordBox(EditText et, int n, int N, int m, int M) {
-        XTag tag = (XTag) et.getTag();
+    private void focusNextCrosswordBox(XwBox xb, int n, int N, int m, int M) {
+        XTag tag = xb.getXTag();
 
         try {
             if (!Util.empty(tag.definitionA) && Util.empty(tag.definitionD) && n < N) {
@@ -499,7 +494,7 @@ public class CrosswordActivity extends SherlockActivity
             } else if (Util.empty(tag.definitionA) && !Util.empty(tag.definitionD) && m < M) {
                 findViewById(Util.getBoxId(m + 1, n)).requestFocus();
             } else {
-                XTag lastTag = (XTag) lastFocusedBox.getTag();
+                XTag lastTag = lastFocusedBox.getXTag();
                 if (!Util.empty(lastTag.definitionA) && Util.empty(lastTag.definitionD) && n < N)
                     findViewById(Util.getBoxId(m, n + 1)).requestFocus();
                 else if (Util.empty(lastTag.definitionA) && !Util.empty(lastTag.definitionD) && m < M)
@@ -508,8 +503,8 @@ public class CrosswordActivity extends SherlockActivity
         } catch (Exception ignored) {}
     }
 
-    private void focusPrevCrosswordBox(EditText et, int n, int m) {
-        XTag tag = (XTag) et.getTag();
+    private void focusPrevCrosswordBox(XwBox xb, int n, int m) {
+        XTag tag = xb.getXTag();
 
         try {
             if (!Util.empty(tag.definitionA) && Util.empty(tag.definitionD) && n > 0) {
@@ -517,7 +512,7 @@ public class CrosswordActivity extends SherlockActivity
             } else if (Util.empty(tag.definitionA) && !Util.empty(tag.definitionD) && m > 0) {
                 findViewById(Util.getBoxId(m - 1, n)).requestFocus();
             } else {
-                XTag lastTag = (XTag) lastFocusedBox.getTag();
+                XTag lastTag = lastFocusedBox.getXTag();
                 if (!Util.empty(lastTag.definitionA) && Util.empty(lastTag.definitionD) && n > 0)
                     findViewById(Util.getBoxId(m, n - 1)).requestFocus();
                 else if (Util.empty(lastTag.definitionA) && !Util.empty(lastTag.definitionD) && m > 0)
@@ -563,9 +558,9 @@ public class CrosswordActivity extends SherlockActivity
     }
 
     private void showHint(View focusedView) {
-        EditText box = (EditText) focusedView;
+        XwBox box = (XwBox) focusedView;
         if (box != null) {
-            XTag tag = (XTag) box.getTag();
+            XTag tag = box.getXTag();
             String msg = "";
 
             if (!Util.empty(tag.definitionA))
@@ -584,7 +579,7 @@ public class CrosswordActivity extends SherlockActivity
         }
     }
 
-    private void loopOverCrossword(CrosswordLoopFunction<EditText, Integer, Integer> func) {
+    private void loopOverCrossword(CrosswordLoopFunction<XwBox, Integer, Integer> func) {
         LinearLayout grid = (LinearLayout) findViewById(R.id.crosswordGrid);
         int len = grid.getChildCount();
 
@@ -600,21 +595,21 @@ public class CrosswordActivity extends SherlockActivity
                     View v2 = row.getChildAt(j);
                     Class c2 = v2.getClass();
 
-                    if (c2 == EditText.class)
-                        func.execute((EditText) v2, i, j);
+                    if (c2 == XwBox.class)
+                        func.execute((XwBox) v2, i, j);
                 }
             }
         }
     }
 
     private void clearCrossword() {
-        loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
+        loopOverCrossword(new CrosswordLoopFunction<XwBox, Integer, Integer>() {
             @Override
-            public void execute(EditText et, Integer row, Integer col) {
-                if (!et.getText().toString().isEmpty())
-                    et.setText("");
+            public void execute(XwBox xb, Integer row, Integer col) {
+                if (!xb.getText().toString().isEmpty())
+                    xb.setText("");
 
-                setCrosswordBoxBackground(et, false);
+                setCrosswordBoxBackground(xb, false);
             }
         });
     }
@@ -622,16 +617,16 @@ public class CrosswordActivity extends SherlockActivity
     private void validateCrosswordGrid() {
         int penaltiesBefore = penalties;
 
-        loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
+        loopOverCrossword(new CrosswordLoopFunction<XwBox, Integer, Integer>() {
             @Override
-            public void execute(EditText et, Integer row, Integer col) {
-                XTag tag = (XTag) et.getTag();
+            public void execute(XwBox xb, Integer row, Integer col) {
+                XTag tag = xb.getXTag();
 
-                if (!et.getText().toString().toLowerCase().equals(tag.answer.toLowerCase())) {
+                if (!xb.getText().toString().toLowerCase().equals(tag.answer.toLowerCase())) {
                     penalties++;
-                    setCrosswordBoxBackground(et, true);
+                    setCrosswordBoxBackground(xb, true);
                 } else {
-                    setCrosswordBoxBackground(et, false);
+                    setCrosswordBoxBackground(xb, false);
                 }
             }
         });
@@ -648,27 +643,27 @@ public class CrosswordActivity extends SherlockActivity
         }
     }
 
-    private void setCrosswordBoxBackground(EditText et, boolean invalid) {
-        XTag tag = (XTag) et.getTag();
+    private void setCrosswordBoxBackground(XwBox xb, boolean invalid) {
+        XTag tag = xb.getXTag();
 
         if (invalid) {
             if (tag.type == XTag.ACROSS_DOWN)
-                et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_across_down);
+                xb.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_across_down);
             else if (tag.type == XTag.ACROSS)
-                et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_across);
+                xb.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_across);
             else if (tag.type == XTag.DOWN)
-                et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_down);
+                xb.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_down);
             else
-                et.setBackgroundResource(R.drawable.edit_text_holo_light_invalid);
+                xb.setBackgroundResource(R.drawable.edit_text_holo_light_invalid);
         } else {
             if (tag.type == XTag.ACROSS_DOWN)
-                et.setBackgroundResource(R.drawable.edit_text_holo_light_across_down);
+                xb.setBackgroundResource(R.drawable.edit_text_holo_light_across_down);
             else if (tag.type == XTag.ACROSS)
-                et.setBackgroundResource(R.drawable.edit_text_holo_light_across);
+                xb.setBackgroundResource(R.drawable.edit_text_holo_light_across);
             else if (tag.type == XTag.DOWN)
-                et.setBackgroundResource(R.drawable.edit_text_holo_light_down);
+                xb.setBackgroundResource(R.drawable.edit_text_holo_light_down);
             else
-                et.setBackgroundResource(R.drawable.edit_text_holo_light);
+                xb.setBackgroundResource(R.drawable.edit_text_holo_light);
         }
     }
 
@@ -696,10 +691,10 @@ public class CrosswordActivity extends SherlockActivity
                             stateRecord.set("active", false);
                         }
 
-                        loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
+                        loopOverCrossword(new CrosswordLoopFunction<XwBox, Integer, Integer>() {
                             @Override
-                            public void execute(EditText et, Integer row, Integer col) {
-                                String val = et.getText().toString();
+                            public void execute(XwBox xb, Integer row, Integer col) {
+                                String val = xb.getText().toString();
                                 // save the non-empty values only, no need to flood the prefs
                                 if (!val.isEmpty()) {
                                     try {
@@ -736,10 +731,10 @@ public class CrosswordActivity extends SherlockActivity
                 editor.putFloat("score_cid" + loadedCID, score);
                 editor.putInt("penalties_cid" + loadedCID, penalties);
 
-                loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
+                loopOverCrossword(new CrosswordLoopFunction<XwBox, Integer, Integer>() {
                     @Override
-                    public void execute(EditText et, Integer row, Integer col) {
-                        String val = et.getText().toString();
+                    public void execute(XwBox xb, Integer row, Integer col) {
+                        String val = xb.getText().toString();
                         // save the non-empty values only, no need to flood the prefs
                         if (!val.isEmpty())
                             editor.putString("box_" + row + "_" + col, val);
@@ -777,9 +772,9 @@ public class CrosswordActivity extends SherlockActivity
                     final DbxFields q = new DbxFields().set("type", "box").set("active", true);
                     final DbxTable stateTable = dbxDatastore.getTable("state");
 
-                    loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
+                    loopOverCrossword(new CrosswordLoopFunction<XwBox, Integer, Integer>() {
                         @Override
-                        public void execute(EditText et, Integer row, Integer col) {
+                        public void execute(XwBox xb, Integer row, Integer col) {
                             try {
                                 q.set("row", row).set("column", col);
                                 QueryResult r = stateTable.query(q);
@@ -788,7 +783,7 @@ public class CrosswordActivity extends SherlockActivity
                                     String val = r.iterator().next().getString("value");
 
                                     if (val != null && !val.isEmpty())
-                                        et.setText(val);
+                                        xb.setText(val);
                                 }
                             } catch (DbxException e) {
                                 Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -809,12 +804,12 @@ public class CrosswordActivity extends SherlockActivity
             score = prefs.getFloat("score_cid" + loadedCID, 0);
             penalties = prefs.getInt("penalties_cid" + loadedCID, 0);
 
-            loopOverCrossword(new CrosswordLoopFunction<EditText, Integer, Integer>() {
+            loopOverCrossword(new CrosswordLoopFunction<XwBox, Integer, Integer>() {
                 @Override
-                public void execute(EditText et, Integer row, Integer col) {
+                public void execute(XwBox xb, Integer row, Integer col) {
                     String val = prefs.getString("box_" + row + "_" + col, "");
                     if (!val.isEmpty())
-                        et.setText(val);
+                        xb.setText(val);
                 }
             });
         }

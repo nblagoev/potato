@@ -2,11 +2,11 @@ package com.nikoblag.android.potato.widget;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputConnectionWrapper;
 import android.widget.EditText;
+import com.nikoblag.android.potato.util.XTag;
 
 import java.util.ArrayList;
 
@@ -23,6 +23,10 @@ public class XwBox extends EditText {
 
     public XwBox(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+    }
+
+    public XTag getXTag() {
+        return (XTag) super.getTag();
     }
 
     @Override
