@@ -487,36 +487,48 @@ public class CrosswordActivity extends SherlockActivity
 
     private void focusNextCrosswordBox(XwBox xb, int n, int N, int m, int M) {
         XTag tag = xb.getXTag();
+        XwBox box = null;
 
         try {
             if (!Util.empty(tag.definitionA) && Util.empty(tag.definitionD) && n < N) {
-                findViewById(Util.getBoxId(m, n + 1)).requestFocus();
+                box = (XwBox) findViewById(Util.getBoxId(m, n + 1));
             } else if (Util.empty(tag.definitionA) && !Util.empty(tag.definitionD) && m < M) {
-                findViewById(Util.getBoxId(m + 1, n)).requestFocus();
+                box = (XwBox) findViewById(Util.getBoxId(m + 1, n));
             } else {
                 XTag lastTag = lastFocusedBox.getXTag();
                 if (!Util.empty(lastTag.definitionA) && Util.empty(lastTag.definitionD) && n < N)
-                    findViewById(Util.getBoxId(m, n + 1)).requestFocus();
+                    box = (XwBox) findViewById(Util.getBoxId(m, n + 1));
                 else if (Util.empty(lastTag.definitionA) && !Util.empty(lastTag.definitionD) && m < M)
-                    findViewById(Util.getBoxId(m + 1, n)).requestFocus();
+                    box = (XwBox) findViewById(Util.getBoxId(m + 1, n));
+            }
+
+            if (box != null) {
+                box.requestFocus();
+                box.selectAll();
             }
         } catch (Exception ignored) {}
     }
 
     private void focusPrevCrosswordBox(XwBox xb, int n, int m) {
         XTag tag = xb.getXTag();
+        XwBox box = null;
 
         try {
             if (!Util.empty(tag.definitionA) && Util.empty(tag.definitionD) && n > 0) {
-                findViewById(Util.getBoxId(m, n - 1)).requestFocus();
+                box = (XwBox) findViewById(Util.getBoxId(m, n - 1));
             } else if (Util.empty(tag.definitionA) && !Util.empty(tag.definitionD) && m > 0) {
-                findViewById(Util.getBoxId(m - 1, n)).requestFocus();
+                box = (XwBox) findViewById(Util.getBoxId(m - 1, n));
             } else {
                 XTag lastTag = lastFocusedBox.getXTag();
                 if (!Util.empty(lastTag.definitionA) && Util.empty(lastTag.definitionD) && n > 0)
-                    findViewById(Util.getBoxId(m, n - 1)).requestFocus();
+                    box = (XwBox) findViewById(Util.getBoxId(m, n - 1));
                 else if (Util.empty(lastTag.definitionA) && !Util.empty(lastTag.definitionD) && m > 0)
-                    findViewById(Util.getBoxId(m - 1, n)).requestFocus();
+                    box = (XwBox) findViewById(Util.getBoxId(m - 1, n));
+            }
+
+            if (box != null) {
+                box.requestFocus();
+                box.selectAll();
             }
         } catch (Exception ignored) {}
     }
