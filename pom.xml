@@ -8,7 +8,7 @@
     <groupId>com.nikoblag.android</groupId>
     <artifactId>potato</artifactId>
     <packaging>apk</packaging>
-    <name>Potato app</name>
+    <name>Potato</name>
     <url>https://github.com/nikoblag/potato</url>
 
     <issueManagement>

@@ -14,15 +14,10 @@ import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.LayoutInflater;
-import android.view.View;
+import android.view.*;
 import android.view.View.OnFocusChangeListener;
-import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
-import android.widget.Toast;
+import android.view.inputmethod.EditorInfo;
+import android.widget.*;
 
 import com.cocosw.undobar.UndoBarStyle;
 import com.dropbox.sync.android.DbxAccountManager;
@@ -459,21 +454,19 @@ public class CrosswordActivity extends SherlockActivity
                             if (s.length() == 0)
                                 return;
 
-                            XTag tag = (XTag) et.getTag();
+                            focusNextCrosswordBox(et, n, N, m, M);
+                        }
+                    });
 
-                            try {
-                                if (!Util.empty(tag.definitionA) && Util.empty(tag.definitionD) && n < N) {
-                                    findViewById(Util.getBoxId(m, n + 1)).requestFocus();
-                                } else if (Util.empty(tag.definitionA) && !Util.empty(tag.definitionD) && m < M) {
-                                    findViewById(Util.getBoxId(m + 1, n)).requestFocus();
-                                } else {
-                                    XTag lastTag = (XTag) lastFocusedBox.getTag();
-                                    if (!Util.empty(lastTag.definitionA) && Util.empty(lastTag.definitionD) && n < N)
-                                        findViewById(Util.getBoxId(m, n + 1)).requestFocus();
-                                    else if (Util.empty(lastTag.definitionA) && !Util.empty(lastTag.definitionD) && m < M)
-                                        findViewById(Util.getBoxId(m + 1, n)).requestFocus();
-                                }
-                            } catch (Exception ignored) {}
+                    et.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                        @Override
+                        public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                            if (actionId == EditorInfo.IME_ACTION_NEXT) {
+                                focusNextCrosswordBox(et, n, N, m, M);
+                                return true;
+                            }
+
+                            return false;
                         }
                     });
                 }
@@ -481,6 +474,24 @@ public class CrosswordActivity extends SherlockActivity
         }
 
         crosswordCreated = true;
+    }
+    
+    private void focusNextCrosswordBox(EditText et, int n, int N, int m, int M) {
+        XTag tag = (XTag) et.getTag();
+
+        try {
+            if (!Util.empty(tag.definitionA) && Util.empty(tag.definitionD) && n < N) {
+                findViewById(Util.getBoxId(m, n + 1)).requestFocus();
+            } else if (Util.empty(tag.definitionA) && !Util.empty(tag.definitionD) && m < M) {
+                findViewById(Util.getBoxId(m + 1, n)).requestFocus();
+            } else {
+                XTag lastTag = (XTag) lastFocusedBox.getTag();
+                if (!Util.empty(lastTag.definitionA) && Util.empty(lastTag.definitionD) && n < N)
+                    findViewById(Util.getBoxId(m, n + 1)).requestFocus();
+                else if (Util.empty(lastTag.definitionA) && !Util.empty(lastTag.definitionD) && m < M)
+                    findViewById(Util.getBoxId(m + 1, n)).requestFocus();
+            }
+        } catch (Exception ignored) {}
     }
 
     private String findDownDefinitionKey(String currHint, String nextHint, List<List<String>> grid,
