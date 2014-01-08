@@ -2,7 +2,7 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
-        android:title="@string/pref_customization_title"
+        android:title="@string/pref_general_title"
         android:key="pref_key_storage_settings">
 
         <CheckBoxPreference
@@ -17,12 +17,6 @@
             android:title="@string/pref_title_auto_clue"
             android:defaultValue="false"/>
 
-        <CheckBoxPreference
-            android:key="vibrate_on"
-            android:summary="@string/pref_summary_vibrate_on"
-            android:title="@string/pref_title_vibrate_on"
-            android:defaultValue="false"/>
-
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -33,6 +27,24 @@
             android:key="dropbox_sync"
             android:title="@string/pref_title_dropbox_sync"
             android:icon="@drawable/dropbox_glyph_blue"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/pref_validation_title"
+        android:key="pref_key_validation_settings">
+
+        <CheckBoxPreference
+            android:key="vibrate_on"
+            android:summary="@string/pref_summary_vibrate_on"
+            android:title="@string/pref_title_vibrate_on"
+            android:defaultValue="false"/>
+
+        <CheckBoxPreference
+            android:key="validate_onshake"
+            android:summary="@string/pref_summary_validate_onshake"
+            android:title="@string/pref_title_validate_onshake"
+            android:defaultValue="false"/>
 
     </PreferenceCategory>
 

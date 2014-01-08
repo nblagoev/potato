@@ -35,6 +35,8 @@ import com.dropbox.sync.android.*;
 import com.dropbox.sync.android.DbxTable.QueryResult;
 import com.dropbox.sync.android.DbxTable.ResolutionRule;
 import com.github.kevinsawicki.wishlist.ThrowableLoader;
+import uk.co.jarofgreen.ShakeDetectActivity;
+import uk.co.jarofgreen.ShakeDetectActivityListener;
 import uk.co.senab.actionbarpulltorefresh.extras.actionbarsherlock.PullToRefreshLayout;
 import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
 import uk.co.senab.actionbarpulltorefresh.library.Options;
@@ -59,6 +61,7 @@ public class CrosswordActivity extends SherlockActivity
     private float score = 0;
     private boolean completed = false;
     private XwBox lastFocusedBox;
+    ShakeDetectActivity shakeDetectActivity;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -142,7 +145,16 @@ public class CrosswordActivity extends SherlockActivity
                 .useViewDelegate(ScrollView.class, new ScrollYDelegate())
                 .setup(mPullToRefreshLayout);
 
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+
+        shakeDetectActivity = new ShakeDetectActivity(this);
+        shakeDetectActivity.addListener(new ShakeDetectActivityListener() {
+            @Override
+            public void shakeDetected() {
+                if (sharedPref.getBoolean("validate_onshake", false))
+                    CrosswordActivity.this.validateCrosswordGrid();
+            }
+        });
 
         if (!sharedPref.getBoolean("auto_resume", true)) {
             ActionBar actionBar = getActionBar();
@@ -274,6 +286,22 @@ public class CrosswordActivity extends SherlockActivity
                     break;
             }
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (shakeDetectActivity != null)
+            shakeDetectActivity.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        if (shakeDetectActivity != null)
+            shakeDetectActivity.onPause();
+
+        super.onPause();
     }
 
     @Override
