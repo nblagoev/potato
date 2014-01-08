@@ -53,5 +53,7 @@
     <string name="pref_summary_vibrate_on">Vibrate on validation if the crossword has incorrect answers</string>
     <string name="pref_dialog_title_clear_cache">Clear cache?</string>
     <string name="pref_dialog_title_clearing_cache">Clearing cache...</string>
+    <string name="dialog_newcrossword_confirm">The current crossword is not solved. All progress will be lost!</string>
+    <string name="dialog_newcrossword_confirm_title">Dismiss crossword?</string>
 
 </resources>

@@ -58,7 +58,6 @@ public class ClearCachePreference extends DialogPreference {
         return super.onCreateView(parent);
     }
 
-
     private class ClearCacheTask extends AsyncTask<Void, Void, Void> {
 
         private Context context;

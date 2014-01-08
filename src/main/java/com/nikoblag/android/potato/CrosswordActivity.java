@@ -21,6 +21,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.nikoblag.android.potato.fragments.NewCrosswordDialogFragment;
 import com.nikoblag.android.potato.util.*;
 import com.nikoblag.android.potato.widget.XwBox;
 
@@ -75,11 +76,19 @@ public class CrosswordActivity extends SherlockActivity
                 startActivity(intent);
                 return true;
             case R.id.new_action:
-                ((ViewGroup) findViewById(R.id.crosswordGrid)).removeAllViews();
-                crosswordCreated = false;
-                findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-                findViewById(R.id.logoMark).setVisibility(View.VISIBLE);
-                getLoaderManager().restartLoader(0, null, this);
+                if (!completed) {
+                    NewCrosswordDialogFragment dialog = new NewCrosswordDialogFragment();
+                    dialog.setOnConfirmCallback(new NewCrosswordDialogFragment.OnConfirmCallback() {
+                        @Override
+                        public void onConfirm() {
+                            newCrossword();
+                        }
+                    });
+                    dialog.show(getFragmentManager(), "crossword_new_action_confirm");
+                } else {
+                    newCrossword();
+                }
+
                 return true;
             case R.id.settings:
                 Intent si = new Intent(this, SettingsActivity.class);
@@ -98,7 +107,6 @@ public class CrosswordActivity extends SherlockActivity
                 return true;
             case R.id.clear:
                 saveState();
-
                 clearCrossword();
 
                 Bundle b = new Bundle();
@@ -605,6 +613,14 @@ public class CrosswordActivity extends SherlockActivity
                 }
             }
         }
+    }
+
+    private void newCrossword() {
+        ((ViewGroup) findViewById(R.id.crosswordGrid)).removeAllViews();
+        crosswordCreated = false;
+        findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+        findViewById(R.id.logoMark).setVisibility(View.VISIBLE);
+        getLoaderManager().restartLoader(0, null, this);
     }
 
     private void clearCrossword() {
