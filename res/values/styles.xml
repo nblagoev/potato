@@ -19,7 +19,7 @@
     </style>
 
     <style name="Widget.ProgressBar.PullToRefresh" parent="SmoothProgressBar">
-        <item name="android:minHeight">@dimen/ptr_progress_bar_stroke_width</item>
+        <item name="android:minHeight">4dp</item>
     </style>
 
     <style name="Theme.SmoothProgressBarDefaults" parent="android:Theme">

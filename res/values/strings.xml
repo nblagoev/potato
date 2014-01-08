@@ -30,8 +30,6 @@
     <string name="pref_summary_wishlist">by Alexander Blom \nApache License, Version 2.0</string>
     <string name="pref_title_osl_smoothprogressbar">SmoothProgressBar</string>
     <string name="pref_summary_smoothprogressbar">by Antoine Merle \nThe Beer-ware License</string>
-    <string name="pref_summary_actionbarpulltorefresh">by Chris Banes \nApache License, Version 2.0</string>
-    <string name="pref_title_osl_actionbarpulltorefresh">ActionBar PullToRefresh</string>
     <string name="pref_summary_undobar">by Roman Nurik \nApache License, Version 2.0</string>
     <string name="pref_title_osl_undobar">UndoBar</string>
     <string name="pref_title_osl_actionbarsherlock">ActionBarSherlock</string>

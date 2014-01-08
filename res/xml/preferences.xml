@@ -104,12 +104,6 @@
                 android:key="pref_key_os_licenses">
 
                 <Preference
-                    android:key="pref_key_osl_actionbarpulltorefresh"
-                    android:title="@string/pref_title_osl_actionbarpulltorefresh"
-                    android:summary="@string/pref_summary_actionbarpulltorefresh"
-                    android:enabled="false"/>
-
-                <Preference
                     android:key="pref_key_osl_actionbarsherlock"
                     android:title="@string/pref_title_osl_actionbarsherlock"
                     android:summary="@string/pref_summary_actionbarsherlock"

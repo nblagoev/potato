@@ -2,37 +2,6 @@
 
 <resources>
 
-    <declare-styleable name="PullToRefreshView">
-        <attr name="ptrViewDelegateClass" format="reference|string" />
-    </declare-styleable>
-
-    <attr name="ptrHeaderStyle" format="reference" />
-
-    <declare-styleable name="PullToRefreshHeader">
-
-        <attr name="ptrHeaderBackground" format="reference|color" />
-
-        <attr name="ptrHeaderHeight" format="reference|dimension" />
-
-        <attr name="ptrHeaderTitleTextAppearance" format="reference" />
-
-        <attr name="ptrProgressBarColor" format="reference|color" />
-
-        <attr name="ptrProgressBarStyle">
-            <flag name="inside" value="0x0" />
-            <flag name="outside" value="0x1" />
-        </attr>
-
-	    <attr name="ptrProgressBarHeight" format="reference|dimension" />
-
-        <attr name="ptrPullText" format="reference|string" />
-
-        <attr name="ptrRefreshingText" format="reference|string" />
-
-        <attr name="ptrReleaseText" format="reference|string" />
-
-    </declare-styleable>
-
     <declare-styleable name="SmoothProgressBar">
         <attr name="spbStyle" format="reference"/>
         <attr name="spb_color" format="color"/>

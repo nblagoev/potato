@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.Loader;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.os.PowerManager;
@@ -17,7 +16,6 @@ import android.view.*;
 import android.view.View.OnFocusChangeListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,11 +35,6 @@ import com.dropbox.sync.android.DbxTable.ResolutionRule;
 import com.github.kevinsawicki.wishlist.ThrowableLoader;
 import uk.co.jarofgreen.ShakeDetectActivity;
 import uk.co.jarofgreen.ShakeDetectActivityListener;
-import uk.co.senab.actionbarpulltorefresh.extras.actionbarsherlock.PullToRefreshLayout;
-import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
-import uk.co.senab.actionbarpulltorefresh.library.Options;
-import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
-import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.ScrollYDelegate;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,12 +43,11 @@ import java.util.*;
 
 
 public class CrosswordActivity extends SherlockActivity
-        implements OnRefreshListener, UndoListener, LoaderCallbacks<XTable> {
+        implements UndoListener, LoaderCallbacks<XTable> {
 
     private boolean resumeQueued = false;
     private boolean crosswordCreated = false;
     private int loadedCID = -1;
-    private PullToRefreshLayout mPullToRefreshLayout;
     private int penalties = 0;
     private int boxCount = 0;
     private float score = 0;
@@ -135,16 +127,6 @@ public class CrosswordActivity extends SherlockActivity
                     }
                 });
 
-        mPullToRefreshLayout = (PullToRefreshLayout) findViewById(R.id.ptr_layout);
-        ActionBarPullToRefresh.from(this)
-                .options(Options.create()
-                        .scrollDistance(.75f)
-                        .build())
-                .allChildrenArePullable()
-                .listener(this)
-                .useViewDelegate(ScrollView.class, new ScrollYDelegate())
-                .setup(mPullToRefreshLayout);
-
         final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
 
         shakeDetectActivity = new ShakeDetectActivity(this);
@@ -160,34 +142,6 @@ public class CrosswordActivity extends SherlockActivity
             ActionBar actionBar = getActionBar();
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-    }
-
-    @Override
-    public void onRefreshStarted(View view) {
-        // Note: Android views can't be manipulated outside the thread
-        // that was used to create them
-        validateCrosswordGrid();
-
-        // Leaving this refresh simulation, because it fixes the UI glitch
-        // caused by the fast execution of the above code
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-                try {
-                    Thread.sleep(Const.SIMULATED_REFRESH_LENGTH);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void result) {
-                super.onPostExecute(result);
-
-                mPullToRefreshLayout.setRefreshComplete();
-            }
-        }.execute();
     }
 
     @Override
