@@ -10,6 +10,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.nikoblag.android.potato.R;
+import com.nikoblag.android.potato.util.Util;
+
 import java.io.File;
 import java.io.FileFilter;
 
@@ -29,7 +32,7 @@ public class ClearCachePreference extends DialogPreference {
         if (positiveResult) {
             progressDialog = new ProgressDialog(getContext());
             progressDialog.setTitle(null);
-            progressDialog.setMessage("Clearing cache...");
+            progressDialog.setMessage(getContext().getString(R.string.pref_dialog_title_clearing_cache));
             progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             progressDialog.setIndeterminate(true);
             progressDialog.setCancelable(false);
@@ -68,9 +71,7 @@ public class ClearCachePreference extends DialogPreference {
         protected Void doInBackground(Void... nothing) {
             // take CPU lock to prevent CPU from going off if the user
             // presses the power button during clearing
-            PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-            PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                    getClass().getName());
+            PowerManager.WakeLock wl = Util.newWakeLock(context);
             wl.acquire();
 
             File[] files = getContext().getFilesDir().listFiles(new FileFilter() {

@@ -55,7 +55,8 @@
             android:key="pref_key_delete_cache"
             android:summary="@string/pref_summary_delete_cache"
             android:title="@string/pref_title_delete_cache"
-            android:dialogMessage="@string/clear_cache_dialog_message"/>
+            android:dialogMessage="@string/clear_cache_dialog_message"
+            android:dialogTitle="@string/pref_dialog_title_clear_cache"/>
 
     </PreferenceCategory>
 

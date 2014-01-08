@@ -58,9 +58,7 @@ public class DownloadCrosswordsPreference extends Preference {
         protected String doInBackground(String... sUrl) {
             // take CPU lock to prevent CPU from going off if the user
             // presses the power button during download
-            PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-            PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                    getClass().getName());
+            PowerManager.WakeLock wl = Util.newWakeLock(context);
             wl.acquire();
 
             Properties props = new Properties();

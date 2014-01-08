@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.PowerManager;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.widget.Toast;
@@ -97,6 +98,13 @@ public final class Util {
         NetworkInfo ni = cm.getActiveNetworkInfo();
 
         return ni != null && ni.isConnected();
+    }
+
+    public static PowerManager.WakeLock newWakeLock(Context context) {
+        PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, context.getClass().getName());
+
+        return wl;
     }
 
     public static int randomCrosswordId(Context context, int max) {

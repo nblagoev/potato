@@ -2,7 +2,6 @@ package com.nikoblag.android.potato;
 
 import android.app.ActionBar;
 import android.app.LoaderManager.LoaderCallbacks;
-import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.SharedPreferences;
@@ -17,30 +16,24 @@ import android.text.TextWatcher;
 import android.view.*;
 import android.view.View.OnFocusChangeListener;
 import android.view.inputmethod.EditorInfo;
-import android.widget.*;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import com.cocosw.undobar.UndoBarStyle;
-import com.dropbox.sync.android.DbxAccountManager;
-import com.dropbox.sync.android.DbxDatastore;
-import com.dropbox.sync.android.DbxException;
-import com.dropbox.sync.android.DbxFields;
-import com.dropbox.sync.android.DbxRecord;
-import com.dropbox.sync.android.DbxTable;
-import com.dropbox.sync.android.DbxTable.QueryResult;
-import com.dropbox.sync.android.DbxTable.ResolutionRule;
-import com.nikoblag.android.potato.util.Const;
-import com.nikoblag.android.potato.util.CrosswordLoopFunction;
-import com.nikoblag.android.potato.util.Util;
+import com.nikoblag.android.potato.util.*;
+import com.nikoblag.android.potato.widget.XwBox;
 
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 import com.cocosw.undobar.UndoBarController;
 import com.cocosw.undobar.UndoBarController.UndoListener;
+import com.cocosw.undobar.UndoBarStyle;
+import com.dropbox.sync.android.*;
+import com.dropbox.sync.android.DbxTable.QueryResult;
+import com.dropbox.sync.android.DbxTable.ResolutionRule;
 import com.github.kevinsawicki.wishlist.ThrowableLoader;
-import com.nikoblag.android.potato.util.XTable;
-import com.nikoblag.android.potato.util.XTag;
-import com.nikoblag.android.potato.widget.XwBox;
 import uk.co.senab.actionbarpulltorefresh.extras.actionbarsherlock.PullToRefreshLayout;
 import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
 import uk.co.senab.actionbarpulltorefresh.library.Options;
@@ -50,11 +43,7 @@ import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.ScrollYDelegate;
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.UnknownHostException;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 
 public class CrosswordActivity extends SherlockActivity
@@ -212,8 +201,7 @@ public class CrosswordActivity extends SherlockActivity
 
                 // take CPU lock to prevent CPU from going off if the user
                 // presses the power button during download
-                PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-                PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
+                PowerManager.WakeLock wl = Util.newWakeLock(CrosswordActivity.this);
                 wl.acquire();
 
                 FileInputStream jcross;
