@@ -640,10 +640,11 @@ public class CrosswordActivity extends SherlockActivity
 
         if (penaltiesBefore == penalties) {
             completed = true;
-            saveState();
         } else {
             Util.vibrate(this, 200);
         }
+
+        saveState();
     }
 
     private void setCrosswordBoxBackground(XwBox xb, boolean invalid) {
