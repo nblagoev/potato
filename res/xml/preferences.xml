@@ -85,17 +85,17 @@
                 android:title="@string/pref_about_title"
                 android:key="pref_key_about_settings">
 
-                <Preference
+                <com.nikoblag.android.potato.preferences.AuthorPreference
                     android:key="pref_key_author"
                     android:summary="@string/pref_summary_author"
                     android:title="@string/pref_title_author"
-                    android:enabled="false"/>
+                    android:persistent="false"/>
 
                 <Preference
                     android:key="pref_key_version"
                     android:summary="@string/pref_summary_version"
                     android:title="@string/pref_title_version"
-                    android:enabled="false"/>
+                    android:persistent="false"/>
 
             </PreferenceCategory>
 
@@ -107,25 +107,25 @@
                     android:key="pref_key_osl_actionbarsherlock"
                     android:title="@string/pref_title_osl_actionbarsherlock"
                     android:summary="@string/pref_summary_actionbarsherlock"
-                    android:enabled="false"/>
+                    android:persistent="false"/>
 
                 <Preference
                     android:key="pref_key_osl_smoothprogressbar"
                     android:title="@string/pref_title_osl_smoothprogressbar"
                     android:summary="@string/pref_summary_smoothprogressbar"
-                    android:enabled="false"/>
+                    android:persistent="false"/>
 
                 <Preference
                     android:key="pref_key_osl_undobar"
                     android:title="@string/pref_title_osl_undobar"
                     android:summary="@string/pref_summary_undobar"
-                    android:enabled="false"/>
+                    android:persistent="false"/>
 
                 <Preference
                     android:key="pref_key_osl_wishlist"
                     android:title="@string/pref_title_osl_wishlist"
                     android:summary="@string/pref_summary_wishlist"
-                    android:enabled="false"/>
+                    android:persistent="false"/>
 
             </PreferenceCategory>
 
