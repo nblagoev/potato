@@ -47,7 +47,7 @@ public class CrosswordActivity extends SherlockActivity
 
     private boolean resumeQueued = false;
     private boolean crosswordCreated = false;
-    private int loadedCID = -1;
+    private int loadedCWID = -1;
     private int penalties = 0;
     private int boxCount = 0;
     private float score = 0;
@@ -162,11 +162,11 @@ public class CrosswordActivity extends SherlockActivity
                 if (!Util.isNetworkAvailable(CrosswordActivity.this) && meta.exists()) {
                     props.load(new FileInputStream(meta));
                     max = Integer.parseInt(props.getProperty("max_id"));
-                    // should we set the loadedCID after the crossword was
+                    // should we set the loadedCWID after the crossword was
                     // successfully rendered?
-                    loadedCID = Util.randomCrosswordId(getApplicationContext(), max);
+                    loadedCWID = Util.randomCrosswordId(getApplicationContext(), max);
 
-                    String cfn = loadedCID + ".jcw";
+                    String cfn = loadedCWID + ".jcw";
                     File file = new File(getFilesDir().getPath() + "/" + cfn);
 
                     if (file.exists())
@@ -183,9 +183,9 @@ public class CrosswordActivity extends SherlockActivity
                 try {
                     props.load(Util.downloadAndOpenFile(CrosswordActivity.this, Const.POTATO_METAFILE_URL, ".meta"));
                     max = Integer.parseInt(props.getProperty("max_id"));
-                    loadedCID = Util.randomCrosswordId(getApplicationContext(), max);
+                    loadedCWID = Util.randomCrosswordId(getApplicationContext(), max);
 
-                    String cfn = loadedCID + ".jcw";
+                    String cfn = loadedCWID + ".jcw";
                     File file = new File(getFilesDir().getPath() + "/" + cfn);
                     if (file.exists())
                         jcross = new FileInputStream(file);
@@ -283,11 +283,11 @@ public class CrosswordActivity extends SherlockActivity
                 try {
                     DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
                     DbxTable table = dbxDatastore.getTable("scores");
-                    DbxRecord last = dbxDatastore.getTable("state").getOrInsert("last");
-                    if (last != null && last.hasField("cid"))
-                        loadedCID = (int) last.getLong("cid");
+                    DbxRecord active = dbxDatastore.getTable("state").getOrInsert("active");
+                    if (active != null && active.hasField("cwid"))
+                        loadedCWID = (int) active.getLong("cwid");
 
-                    DbxRecord scoreRecord = table.get("cid-" + loadedCID);
+                    DbxRecord scoreRecord = table.get("cwid-" + loadedCWID);
 
                     isCompleted =  (scoreRecord != null && scoreRecord.getBoolean("completed"));
                     dbxDatastore.close();
@@ -295,13 +295,13 @@ public class CrosswordActivity extends SherlockActivity
                     Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             } else {
-                loadedCID = prefs.getInt("cid", -1);
+                loadedCWID = prefs.getInt("cwid", -1);
                 SharedPreferences scores = getSharedPreferences("scores", MODE_PRIVATE);
-                isCompleted = scores.contains("cid" + loadedCID);
+                isCompleted = scores.contains("cwid" + loadedCWID);
             }
 
             if (!isCompleted) {
-                String cfn = loadedCID + ".jcw";
+                String cfn = loadedCWID + ".jcw";
                 File file = new File(getFilesDir().getPath() + "/" + cfn);
 
                 try {
@@ -460,6 +460,7 @@ public class CrosswordActivity extends SherlockActivity
             }
         }
 
+        loadInfoForCrossword();
         crosswordCreated = true;
     }
 
@@ -671,6 +672,33 @@ public class CrosswordActivity extends SherlockActivity
         }
     }
 
+    private void loadInfoForCrossword() {
+        DbxAccountManager accMngr = DbxAccountManager.getInstance(getApplicationContext(),
+                Const.DROPBOX_API_KEY, Const.DROPBOX_APP_KEY);
+
+        if (accMngr.hasLinkedAccount()) {
+            try {
+                DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
+                DbxTable scoreTable = dbxDatastore.getTable("scores");
+
+                DbxRecord scoreRecord = scoreTable.get("cwid-" + loadedCWID);
+
+                if (scoreRecord != null) {
+                    score = (float) scoreRecord.getDouble("score");
+                    penalties = (int) scoreRecord.getLong("penalties");
+                }
+
+                dbxDatastore.close();
+            } catch (DbxException e) {
+                Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            final SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
+            score = prefs.getFloat("score_cwid" + loadedCWID, 0);
+            penalties = prefs.getInt("penalties_cwid" + loadedCWID, 0);
+        }
+    }
+
     private void saveState() {
         DbxAccountManager accMngr = DbxAccountManager.getInstance(getApplicationContext(),
                 Const.DROPBOX_API_KEY, Const.DROPBOX_APP_KEY);
@@ -681,7 +709,7 @@ public class CrosswordActivity extends SherlockActivity
                 DbxTable scoreTable = dbxDatastore.getTable("scores");
 
                 scoreTable.setResolutionRule("score", ResolutionRule.MAX);
-                DbxRecord scoreRecord = scoreTable.getOrInsert("cid-" + loadedCID);
+                DbxRecord scoreRecord = scoreTable.getOrInsert("cwid-" + loadedCWID);
 
                 if (!scoreRecord.hasField("completed") || !scoreRecord.getBoolean("completed")) {
                     scoreRecord.set("score", score).set("completed", completed)
@@ -717,7 +745,7 @@ public class CrosswordActivity extends SherlockActivity
                             }
                         });
 
-                        stateTable.getOrInsert("last").set("cid", loadedCID);
+                        stateTable.getOrInsert("active").set("cwid", loadedCWID);
                     }
 
                     dbxDatastore.sync();
@@ -731,9 +759,9 @@ public class CrosswordActivity extends SherlockActivity
             if (!completed) {
                 final SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
                 final SharedPreferences.Editor editor = prefs.edit().clear();
-                editor.putInt("cid", loadedCID);
-                editor.putFloat("score_cid" + loadedCID, score);
-                editor.putInt("penalties_cid" + loadedCID, penalties);
+                editor.putInt("cwid", loadedCWID);
+                editor.putFloat("score_cwid" + loadedCWID, score);
+                editor.putInt("penalties_cwid" + loadedCWID, penalties);
 
                 loopOverCrossword(new CrosswordLoopFunction<XwBox, Integer, Integer>() {
                     @Override
@@ -749,7 +777,7 @@ public class CrosswordActivity extends SherlockActivity
             } else {
                 final SharedPreferences prefs = getSharedPreferences("scores", MODE_PRIVATE);
                 final SharedPreferences.Editor editor = prefs.edit().clear();
-                editor.putFloat("cid" + loadedCID, score);
+                editor.putFloat("cwid" + loadedCWID, score);
                 editor.commit();
             }
         }
@@ -767,12 +795,9 @@ public class CrosswordActivity extends SherlockActivity
                 DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
                 DbxTable scoreTable = dbxDatastore.getTable("scores");
 
-                DbxRecord scoreRecord = scoreTable.get("cid-" + loadedCID);
+                DbxRecord scoreRecord = scoreTable.get("cwid-" + loadedCWID);
 
                 if (scoreRecord != null && !scoreRecord.getBoolean("completed")) {
-                    score = (float) scoreRecord.getDouble("score");
-                    penalties = (int) scoreRecord.getLong("penalties");
-
                     final DbxFields q = new DbxFields().set("type", "box").set("active", true);
                     final DbxTable stateTable = dbxDatastore.getTable("state");
 
@@ -804,9 +829,6 @@ public class CrosswordActivity extends SherlockActivity
             }
         } else {
             final SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
-
-            score = prefs.getFloat("score_cid" + loadedCID, 0);
-            penalties = prefs.getInt("penalties_cid" + loadedCID, 0);
 
             loopOverCrossword(new CrosswordLoopFunction<XwBox, Integer, Integer>() {
                 @Override

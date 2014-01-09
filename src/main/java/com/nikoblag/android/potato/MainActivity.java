@@ -31,8 +31,8 @@ public class MainActivity extends SherlockActivity {
             if (accMngr.hasLinkedAccount()) {
                 try {
                     DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
-                    DbxRecord last = dbxDatastore.getTable("state").getOrInsert("last");
-                    boolean toResume = last != null && last.hasField("cid");
+                    DbxRecord active = dbxDatastore.getTable("state").getOrInsert("active");
+                    boolean toResume = active != null && active.hasField("cwid");
                     dbxDatastore.close();
                     if (toResume)
                         resumeCrossword(null);

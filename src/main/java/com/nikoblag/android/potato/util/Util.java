@@ -7,6 +7,7 @@ import android.net.NetworkInfo;
 import android.os.PowerManager;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.widget.Toast;
 import com.dropbox.sync.android.DbxAccountManager;
 import com.dropbox.sync.android.DbxDatastore;
@@ -102,9 +103,8 @@ public final class Util {
 
     public static PowerManager.WakeLock newWakeLock(Context context) {
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, context.getClass().getName());
 
-        return wl;
+        return pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, context.getClass().getName());
     }
 
     public static int randomCrosswordId(Context context, int max) {
@@ -118,9 +118,10 @@ public final class Util {
                 DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
                 DbxTable table = dbxDatastore.getTable("scores");
 
-                for (DbxRecord scoreRecord = table.get("cid-" + id);
+                for (DbxRecord scoreRecord = table.get("cwid-" + id);
                      scoreRecord != null && scoreRecord.getBoolean("completed");
-                     scoreRecord = table.get("cid-" + id)) {
+                     scoreRecord = table.get("cwid-" + id)) {
+                    Log.d("Util", "Id rejected: " + id);
                     id = 1 + (int) (Math.random() * max);
                 }
 
@@ -131,11 +132,13 @@ public final class Util {
         } else {
             SharedPreferences prefs = context.getSharedPreferences("scores", Context.MODE_PRIVATE);
 
-            while (prefs.contains("cid" + id)) {
+            while (prefs.contains("cwid" + id)) {
+                Log.d("Util", "Id rejected: " + id);
                 id = 1 + (int) (Math.random() * max);
             }
         }
 
+        Log.d("Util", "Generated id: " + id);
         return id;
     }
 
