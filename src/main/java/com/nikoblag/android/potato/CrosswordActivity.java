@@ -51,7 +51,7 @@ public class CrosswordActivity extends SherlockActivity
     private int penalties = 0;
     private int boxCount = 0;
     private float score = 0;
-    private boolean completed = false;
+    private boolean solved = false;
     private XwBox lastFocusedBox;
     ShakeDetectActivity shakeDetectActivity;
 
@@ -71,7 +71,7 @@ public class CrosswordActivity extends SherlockActivity
                 startActivity(intent);
                 return true;
             case R.id.new_action:
-                if (!completed) {
+                if (!solved) {
                     NewCrosswordDialogFragment dialog = new NewCrosswordDialogFragment();
                     dialog.setOnConfirmCallback(new NewCrosswordDialogFragment.OnConfirmCallback() {
                         @Override
@@ -277,7 +277,7 @@ public class CrosswordActivity extends SherlockActivity
             DbxAccountManager accMngr = DbxAccountManager.getInstance(getApplicationContext(),
                     Const.DROPBOX_API_KEY, Const.DROPBOX_APP_KEY);
 
-            boolean isCompleted = false;
+            boolean isSolved = false;
 
             if (accMngr.hasLinkedAccount()) {
                 try {
@@ -289,7 +289,7 @@ public class CrosswordActivity extends SherlockActivity
 
                     DbxRecord scoreRecord = table.get("cwid-" + loadedCWID);
 
-                    isCompleted =  (scoreRecord != null && scoreRecord.getBoolean("completed"));
+                    isSolved =  (scoreRecord != null && scoreRecord.getBoolean("solved"));
                     dbxDatastore.close();
                 } catch (DbxException e) {
                     Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -297,10 +297,10 @@ public class CrosswordActivity extends SherlockActivity
             } else {
                 loadedCWID = prefs.getInt("cwid", -1);
                 SharedPreferences scores = getSharedPreferences("scores", MODE_PRIVATE);
-                isCompleted = scores.contains("cwid" + loadedCWID);
+                isSolved = scores.contains("cwid" + loadedCWID);
             }
 
-            if (!isCompleted) {
+            if (!isSolved) {
                 String cfn = loadedCWID + ".jcw";
                 File file = new File(getFilesDir().getPath() + "/" + cfn);
 
@@ -328,7 +328,7 @@ public class CrosswordActivity extends SherlockActivity
         boxCount = 0;
         penalties = 0;
         score = 0;
-        completed = false;
+        solved = false;
 
         LinearLayout grid = (LinearLayout) findViewById(R.id.crosswordGrid);
         LayoutInflater inflater = LayoutInflater.from(this);
@@ -640,7 +640,7 @@ public class CrosswordActivity extends SherlockActivity
         Toast.makeText(this, "Validation complete\nScore: " + ss, Toast.LENGTH_SHORT).show();
 
         if (penaltiesBefore == penalties) {
-            completed = true;
+            solved = true;
         } else {
             Util.vibrate(this, 200);
         }
@@ -711,11 +711,11 @@ public class CrosswordActivity extends SherlockActivity
                 scoreTable.setResolutionRule("score", ResolutionRule.MAX);
                 DbxRecord scoreRecord = scoreTable.getOrInsert("cwid-" + loadedCWID);
 
-                if (!scoreRecord.hasField("completed") || !scoreRecord.getBoolean("completed")) {
-                    scoreRecord.set("score", score).set("completed", completed)
+                if (!scoreRecord.hasField("solved") || !scoreRecord.getBoolean("solved")) {
+                    scoreRecord.set("score", score).set("solved", solved)
                                .set("date", new Date()).set("penalties", penalties);
 
-                    if (!completed) {
+                    if (!solved) {
                         DbxFields q = new DbxFields().set("type", "box").set("active", true);
                         final DbxTable stateTable = dbxDatastore.getTable("state");
 
@@ -756,7 +756,7 @@ public class CrosswordActivity extends SherlockActivity
                 Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         } else {
-            if (!completed) {
+            if (!solved) {
                 final SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
                 final SharedPreferences.Editor editor = prefs.edit().clear();
                 editor.putInt("cwid", loadedCWID);
@@ -797,7 +797,7 @@ public class CrosswordActivity extends SherlockActivity
 
                 DbxRecord scoreRecord = scoreTable.get("cwid-" + loadedCWID);
 
-                if (scoreRecord != null && !scoreRecord.getBoolean("completed")) {
+                if (scoreRecord != null && !scoreRecord.getBoolean("solved")) {
                     final DbxFields q = new DbxFields().set("type", "box").set("active", true);
                     final DbxTable stateTable = dbxDatastore.getTable("state");
 
