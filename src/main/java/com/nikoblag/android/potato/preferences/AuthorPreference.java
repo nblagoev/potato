@@ -80,21 +80,21 @@ public class AuthorPreference extends Preference {
             wl.acquire();
 
             DbxAccountManager accMngr = DbxAccountManager.getInstance(context, Const.DROPBOX_API_KEY, Const.DROPBOX_APP_KEY);
-
+            DbxDatastore dbxDatastore = null;
             try {
                 if (accMngr.hasLinkedAccount()) {
-                    DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
+                    dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
                     for (DbxTable table : dbxDatastore.getTables()) {
                         for (DbxRecord record : table.query()) {
                             record.deleteRecord();
                         }
                     }
                     dbxDatastore.sync();
-                    dbxDatastore.close();
                 }
             } catch (DbxException e) {
                 return e.getMessage();
             } finally {
+                dbxDatastore.close();
                 wl.release();
             }
 

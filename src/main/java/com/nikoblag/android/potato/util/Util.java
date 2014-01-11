@@ -114,8 +114,9 @@ public final class Util {
                 Const.DROPBOX_API_KEY, Const.DROPBOX_APP_KEY);
 
         if (accMngr.hasLinkedAccount()) {
+            DbxDatastore dbxDatastore = null;
             try {
-                DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
+                dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
                 DbxTable table = dbxDatastore.getTable("scores");
 
                 for (DbxRecord scoreRecord = table.get("cwid-" + id);
@@ -124,10 +125,11 @@ public final class Util {
                     Log.d("Util", "Id rejected: " + id);
                     id = 1 + (int) (Math.random() * max);
                 }
-
-                dbxDatastore.close();
             } catch (DbxException e) {
                 Toast.makeText(context.getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+            } finally {
+                if (dbxDatastore != null)
+                    dbxDatastore.close();
             }
         } else {
             SharedPreferences prefs = context.getSharedPreferences("scores", Context.MODE_PRIVATE);

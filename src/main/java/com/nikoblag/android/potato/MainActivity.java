@@ -29,17 +29,21 @@ public class MainActivity extends SherlockActivity {
 
         if (sharedPref.getBoolean("auto_resume", true)) {
             if (accMngr.hasLinkedAccount()) {
+                DbxDatastore dbxDatastore = null;
                 try {
-                    DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
+                    dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
                     DbxRecord active = dbxDatastore.getTable("state").getOrInsert("active");
                     boolean toResume = active != null && active.hasField("cwid");
-                    dbxDatastore.close();
+
                     if (toResume)
                         resumeCrossword(null);
                     else
                         newCrossword(null);
-                }  catch (DbxException e) {
+                } catch (DbxException e) {
                     Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                } finally {
+                    if (dbxDatastore != null)
+                        dbxDatastore.close();
                 }
             } else {
                 if (prefs.getAll().isEmpty())

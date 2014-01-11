@@ -19,3 +19,5 @@ gen-external-apklibs
 out
 classes
 libs
+potato.apk
+proguard_logs

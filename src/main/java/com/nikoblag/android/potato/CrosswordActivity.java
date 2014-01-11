@@ -280,8 +280,9 @@ public class CrosswordActivity extends SherlockActivity
             boolean isSolved = false;
 
             if (accMngr.hasLinkedAccount()) {
+                DbxDatastore dbxDatastore = null;
                 try {
-                    DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
+                    dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
                     DbxTable table = dbxDatastore.getTable("scores");
                     DbxRecord active = dbxDatastore.getTable("state").getOrInsert("active");
                     if (active != null && active.hasField("cwid"))
@@ -289,10 +290,12 @@ public class CrosswordActivity extends SherlockActivity
 
                     DbxRecord scoreRecord = table.get("cwid-" + loadedCWID);
 
-                    isSolved =  (scoreRecord != null && scoreRecord.getBoolean("solved"));
-                    dbxDatastore.close();
+                    isSolved = (scoreRecord != null && scoreRecord.getBoolean("solved"));
                 } catch (DbxException e) {
                     Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                } finally {
+                    if (dbxDatastore != null)
+                        dbxDatastore.close();
                 }
             } else {
                 loadedCWID = prefs.getInt("cwid", -1);
@@ -677,8 +680,9 @@ public class CrosswordActivity extends SherlockActivity
                 Const.DROPBOX_API_KEY, Const.DROPBOX_APP_KEY);
 
         if (accMngr.hasLinkedAccount()) {
+            DbxDatastore dbxDatastore = null;
             try {
-                DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
+                dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
                 DbxTable scoreTable = dbxDatastore.getTable("scores");
 
                 DbxRecord scoreRecord = scoreTable.get("cwid-" + loadedCWID);
@@ -687,10 +691,11 @@ public class CrosswordActivity extends SherlockActivity
                     score = (float) scoreRecord.getDouble("score");
                     penalties = (int) scoreRecord.getLong("penalties");
                 }
-
-                dbxDatastore.close();
             } catch (DbxException e) {
                 Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            } finally {
+                if (dbxDatastore != null)
+                    dbxDatastore.close();
             }
         } else {
             final SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
@@ -704,8 +709,9 @@ public class CrosswordActivity extends SherlockActivity
                 Const.DROPBOX_API_KEY, Const.DROPBOX_APP_KEY);
 
         if (accMngr.hasLinkedAccount()) {
+            DbxDatastore dbxDatastore = null;
             try {
-                DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
+                dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
                 DbxTable scoreTable = dbxDatastore.getTable("scores");
 
                 scoreTable.setResolutionRule("score", ResolutionRule.MAX);
@@ -713,7 +719,7 @@ public class CrosswordActivity extends SherlockActivity
 
                 if (!scoreRecord.hasField("solved") || !scoreRecord.getBoolean("solved")) {
                     scoreRecord.set("score", score).set("solved", solved)
-                               .set("date", new Date()).set("penalties", penalties);
+                            .set("date", new Date()).set("penalties", penalties);
 
                     if (!solved) {
                         DbxFields q = new DbxFields().set("type", "box").set("active", true);
@@ -750,10 +756,11 @@ public class CrosswordActivity extends SherlockActivity
 
                     dbxDatastore.sync();
                 }
-
-                dbxDatastore.close();
             } catch (DbxException e) {
                 Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            } finally {
+                if (dbxDatastore != null)
+                    dbxDatastore.close();
             }
         } else {
             if (!solved) {
@@ -791,8 +798,9 @@ public class CrosswordActivity extends SherlockActivity
                 Const.DROPBOX_API_KEY, Const.DROPBOX_APP_KEY);
 
         if (accMngr.hasLinkedAccount()) {
+            DbxDatastore dbxDatastore = null;
             try {
-                DbxDatastore dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
+                dbxDatastore = DbxDatastore.openDefault(accMngr.getLinkedAccount());
                 DbxTable scoreTable = dbxDatastore.getTable("scores");
 
                 DbxRecord scoreRecord = scoreTable.get("cwid-" + loadedCWID);
@@ -822,10 +830,11 @@ public class CrosswordActivity extends SherlockActivity
 
                     dbxDatastore.sync();
                 }
-
-                dbxDatastore.close();
             } catch (DbxException e) {
                 Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            } finally {
+                if (dbxDatastore != null)
+                    dbxDatastore.close();
             }
         } else {
             final SharedPreferences prefs = getSharedPreferences("resume", MODE_PRIVATE);
