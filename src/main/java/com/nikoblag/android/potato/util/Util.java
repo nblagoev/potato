@@ -120,7 +120,7 @@ public final class Util {
                 DbxTable table = dbxDatastore.getTable("scores");
 
                 for (DbxRecord scoreRecord = table.get("cwid-" + id);
-                     scoreRecord != null && scoreRecord.getBoolean("completed");
+                     scoreRecord != null && scoreRecord.getBoolean("solved");
                      scoreRecord = table.get("cwid-" + id)) {
                     Log.d("Util", "Id rejected: " + id);
                     id = 1 + (int) (Math.random() * max);
