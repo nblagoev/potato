@@ -616,7 +616,7 @@ public class CrosswordActivity extends SherlockActivity
                 if (!xb.getText().toString().isEmpty())
                     xb.setText("");
 
-                setCrosswordBoxBackground(xb, false);
+                xb.showInvalidBackground(false);
             }
         });
     }
@@ -631,9 +631,9 @@ public class CrosswordActivity extends SherlockActivity
 
                 if (!xb.getText().toString().toLowerCase().equals(tag.answer.toLowerCase())) {
                     penalties++;
-                    setCrosswordBoxBackground(xb, true);
+                    xb.showInvalidBackground(true);
                 } else {
-                    setCrosswordBoxBackground(xb, false);
+                    xb.showInvalidBackground(false);
                 }
             }
         });
@@ -649,30 +649,6 @@ public class CrosswordActivity extends SherlockActivity
         }
 
         saveState();
-    }
-
-    private void setCrosswordBoxBackground(XwBox xb, boolean invalid) {
-        XTag tag = xb.getXTag();
-
-        if (invalid) {
-            if (tag.type == XTag.ACROSS_DOWN)
-                xb.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_across_down);
-            else if (tag.type == XTag.ACROSS)
-                xb.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_across);
-            else if (tag.type == XTag.DOWN)
-                xb.setBackgroundResource(R.drawable.edit_text_holo_light_invalid_down);
-            else
-                xb.setBackgroundResource(R.drawable.edit_text_holo_light_invalid);
-        } else {
-            if (tag.type == XTag.ACROSS_DOWN)
-                xb.setBackgroundResource(R.drawable.edit_text_holo_light_across_down);
-            else if (tag.type == XTag.ACROSS)
-                xb.setBackgroundResource(R.drawable.edit_text_holo_light_across);
-            else if (tag.type == XTag.DOWN)
-                xb.setBackgroundResource(R.drawable.edit_text_holo_light_down);
-            else
-                xb.setBackgroundResource(R.drawable.edit_text_holo_light);
-        }
     }
 
     private void loadInfoForCrossword() {
@@ -705,6 +681,9 @@ public class CrosswordActivity extends SherlockActivity
     }
 
     private void saveState() {
+        if (loadedCWID == -1)
+            return;
+
         DbxAccountManager accMngr = DbxAccountManager.getInstance(getApplicationContext(),
                 Const.DROPBOX_API_KEY, Const.DROPBOX_APP_KEY);
 

@@ -6,6 +6,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputConnectionWrapper;
 import android.widget.EditText;
+import com.nikoblag.android.potato.R;
 import com.nikoblag.android.potato.util.XTag;
 
 import java.util.ArrayList;
@@ -27,6 +28,30 @@ public class XwBox extends EditText {
 
     public XTag getXTag() {
         return (XTag) super.getTag();
+    }
+
+    public void showInvalidBackground(boolean value) {
+        XTag tag = getXTag();
+
+        if (value) {
+            if (tag.type == XTag.ACROSS_DOWN)
+                setBackgroundResource(R.drawable.edit_text_holo_light_invalid_across_down);
+            else if (tag.type == XTag.ACROSS)
+                setBackgroundResource(R.drawable.edit_text_holo_light_invalid_across);
+            else if (tag.type == XTag.DOWN)
+                setBackgroundResource(R.drawable.edit_text_holo_light_invalid_down);
+            else
+                setBackgroundResource(R.drawable.edit_text_holo_light_invalid);
+        } else {
+            if (tag.type == XTag.ACROSS_DOWN)
+                setBackgroundResource(R.drawable.edit_text_holo_light_across_down);
+            else if (tag.type == XTag.ACROSS)
+                setBackgroundResource(R.drawable.edit_text_holo_light_across);
+            else if (tag.type == XTag.DOWN)
+                setBackgroundResource(R.drawable.edit_text_holo_light_down);
+            else
+                setBackgroundResource(R.drawable.edit_text_holo_light);
+        }
     }
 
     @Override

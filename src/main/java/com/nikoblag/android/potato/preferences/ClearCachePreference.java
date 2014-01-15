@@ -103,10 +103,5 @@ public class ClearCachePreference extends DialogPreference {
             Toast.makeText(getContext(), "Cache cleared", Toast.LENGTH_SHORT).show();
             notifyChanged();
         }
-
-        //@Override
-        //protected void onCancelled() {
-        //    notifyChanged();
-        //}
     }
 }
